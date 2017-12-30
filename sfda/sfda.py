@@ -154,7 +154,6 @@ def get_data_page(browser, themonth, pageidx):
             try:
                 WebDriverWait(browser, 20).until(xpath_element_exists('//body'))
                 save_data(browser, themonth, prod_id)
-                #print  '333333' + browser.current_url
                 #prod_url = browser.current_url
                 add_log(themonth, str(pageidx), str(prod_id), prod_name, prod_url)
                 captcha_wrong = False
@@ -199,31 +198,10 @@ def calc_proxy_profile(proxy_info, drivertype='phantomjs'):
         })
         profile.set_proxy(proxyobj)
         profile.update_preferences()
-        #profile.set_preference('network.proxy_type', 1)
-        #profile.set_preference('network.proxy.http', proxy_info[0])
-        #profile.set_preference('network.proxy.http_port', int(proxy_info[1]))
-        #profile.update_preferences()
         return profile
     serv_args = ['--proxy=%s' % (proxy_info), '--proxy-type=http',]
     #'--proxy-auth=username:password'
     return serv_args
-
-def get_proxy_from_taobao():
-    #http://www.httpdaili.com/api.asp?ddbh=123&noinfo=true&sl=100
-    url = 'http://www.httpdaili.com/api.asp'
-    payload = {'ddbh': '105096135945553965', 'old': '1', 'noinfo': 'true', 'sl': '1', 'china': '1'}
-    rsp = requests.get(url, params=payload)
-    rsp = rsp.text
-    with open('toabao.log', 'a+') as outf:
-        outf.write(rsp)
-    #idx1 = rsp.index('<body>')
-    #idx2 = rsp.index('</body>')
-    #rsp = rsp[idx1+6: idx2]
-    proxy_info = rsp.strip()
-    with open('proxy_taobao.txt', 'a+') as outf:
-        outf.write(proxy_info)
-        outf.write('\n')
-    return proxy_info
 
 def main(themonth, pageidx):
     url = 'http://app1.sfda.gov.cn/datasearch/face3/base.jsp?tableId=69&tableName=TABLE69&title=%BD%F8%BF%DA%BB%AF%D7%B1%C6%B7&bcId=124053679279972677481528707165'
@@ -233,13 +211,6 @@ def main(themonth, pageidx):
     #step1. open website
     browser = webdriver.Firefox()
     proxy_info = None
-    #getproxy = raw_input('get proxy?(y/n)')
-    #if getproxy in 'yY':
-    #    proxy_info = get_proxy_from_taobao()
-        #proxy_info = [proxy_info.split(':')[0], proxy_info.split(':')[1]]
-    #proxy_info = '127.0.0.1:1080'
-    #proxy_info = '60.249.19.50:8080'
-    #proxy_info = '95.165.147.200:3128'
     #browser = webdriver.Firefox(firefox_profile=calc_proxy_profile(proxy_info, 'firefox'))
     #browser = webdriver.Chrome(chrome_options=calc_proxy_profile(proxy_info, 'chrome'))
     #browser = webdriver.PhantomJS(service_args=calc_proxy_profile(proxy_info, 'phantomjs'))
@@ -252,13 +223,9 @@ def main(themonth, pageidx):
     elem.click()
     #step3. find product one by one
     has_data = True
-    #pageidx = 1
     while has_data:
         has_data = get_data_page(browser, themonth, pageidx)
         pageidx += 1
-        #break
-        #break
-        #switch proxy
         #time.sleep(120)
     browser.quit()
     
@@ -266,60 +233,3 @@ def main(themonth, pageidx):
 if __name__=="__main__":
     script, themonth, pageidx = argv
     main(themonth, int(pageidx))
-
-
-
-
-def something_else():
-    ele = browser.find_element_by_name('COLUMN811')
-    ele.send_keys(u'国妆备进字J2017')
-    c = browser.find_element_by_xpath('//input[@name="COLUMN805"]/following-sibling::input')
-    c.click()
-    x = browser.find_element_by_xpath('//table//tr[1]/td/p/a')
-    x.click()
-    x = browser.find_element_by_xpath('//table//tr/td[2]/a[contains(@href,"123.127")]')
-    x.click()
-    browser.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
-
-    actions.key_down(Keys.CONTROL).key_down(Keys.TAB).key_up(Keys.TAB).key_up(Keys.CONTROL).perform()
-    browser.switch_to.window(browser.window_handles[1])
-
-    main_window = browser.current_window_handle
-    browser.switch_to_window(main_window)
-
-    ele_captcha = browser.find_element_by_xpath('//img')
-    img_captcha_base64 = browser.execute_async_script("""
-        var ele = arguments[0], callback = arguments[1];
-        ele.addEventListener('load', function fn(){
-          ele.removeEventListener('load', fn, false);
-          var cnv = document.createElement('canvas');
-          cnv.width = this.width; cnv.height = this.height;
-          cnv.getContext('2d').drawImage(this, 0, 0);
-          callback(cnv.toDataURL('image/jpeg').substring(22));
-        }, false);
-        ele.dispatchEvent(new Event('load'));
-        """, ele_captcha)
-    with open(r"captcha.jpg", 'wb') as f:
-        f.write(base64.b64decode(img_captcha_base64))
-    xx = browser.find_element_by_name('randomInt')
-
-
-
-    pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
-    captcha = pytesseract.image_to_string(Image.open('captcha.jpg'), config='outputbase digits')
-    print(pytesseract.image_to_string(Image.open('ocr3.jpeg'), config='outputbase digits'))
-
-    ele_i = browser.find_element_by_xpath('//input')
-    ele_i.send_keys(captcha)
-    ele = browser.find_element_by_xpath('//div[@class="btnGroup"]/a[@class="check"]')
-    ele.click()
-    with open('testx.html','w') as outf:
-        outf.write(browser.page_source.encode('utf-8'))
-    browser.close()
-    browser.switch_to.window(browser.window_handles[0])
-    x = browser.find_element_by_xpath('//img[contains(@src,"data_fanhui")]')
-    x.click()
-    x = browser.find_element_by_xpath('//table//tr[3]/td/p/a')
-    x.click()
-    x = browser.find_element_by_xpath('//table//tr/td[2]/a[contains(@href,"123.127")]')
-    x.click()
