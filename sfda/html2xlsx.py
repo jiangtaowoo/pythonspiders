@@ -87,8 +87,6 @@ def output_one_product_info(xlsxfilename, wb, cur_row, themonth, file_idx, prod_
         cur_row += 1
     cur_row += 1
     return cur_row
-    #ws.cell(row=1, column=curcol, value=colname)
-    #ws.merge_cells(start_row=1, start_column=curcol, end_row=2, end_column=curcol)
 
 def main(themonth):
     flist = os.listdir('.' + os.sep + str(themonth))
@@ -113,26 +111,6 @@ def adjust_column_width(wb):
             ws.column_dimensions['A'].width = 10
             ws.column_dimensions['B'].width = 40
             ws.column_dimensions['C'].width = 20
-        continue
-
-        for col in ws.columns:
-            max_length = 0
-            column = col[0].column  # Get the column name
-            for cell in col:
-                if cell.row>1:
-                    if cell.value:
-                        if 'http' not in cell.value:
-                            if isinstance(cell.value, unicode):
-                                if len(cell.value)*1.2 > max_length:
-                                    max_length = len(cell.value)*1.2
-                            else:
-                                if len(str(cell.value)) > max_length:
-                                    max_length = len(cell.value)
-                        else:
-                            max_length = 10
-            adjusted_width = (max_length + 2) * 1.2
-            adjusted_width = adjusted_width if adjusted_width<60 else 60
-            ws.column_dimensions[column].width = adjusted_width
 
 if __name__=="__main__":
     script, themonth = argv
