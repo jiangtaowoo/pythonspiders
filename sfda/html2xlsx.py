@@ -94,7 +94,7 @@ def main(themonth):
     wb = Workbook()
     cur_row = 1
     flen = len(flist)
-    xlsxfilename = str(themonth) + '.xlsx'
+    xlsxfilename = '.' + os.sep + 'dataout' + os.sep + str(themonth) + '.xlsx'
     for idx, f in enumerate(flist):
         cur_row = output_one_product_info(xlsxfilename, wb, cur_row, themonth, idx, f)
         print ' - %s  %d of %d' % (f, idx+1, flen)
