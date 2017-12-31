@@ -89,7 +89,7 @@ def output_one_product_info(xlsxfilename, wb, cur_row, themonth, file_idx, prod_
     return cur_row
 
 def main(themonth):
-    flist = os.listdir('.' + os.sep + str(themonth))
+    flist = os.listdir('.' + os.sep + 'dataout' + os.sep + str(themonth))
     flist.sort()
     wb = Workbook()
     cur_row = 1
@@ -113,5 +113,10 @@ def adjust_column_width(wb):
             ws.column_dimensions['C'].width = 20
 
 if __name__=="__main__":
-    script, themonth = argv
-    main(themonth)
+    if len(argv)==2:
+        script, themonth = argv
+        main(themonth)
+    else:
+        for i in xrange(0,10):
+            print '>>> cata %d ---' % (i)
+            main(i)

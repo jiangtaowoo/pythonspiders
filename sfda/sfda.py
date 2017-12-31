@@ -48,8 +48,14 @@ def recognize_captcha(captcha_file_path):
     captcha = pytesseract.image_to_string(Image.open(captcha_file_path), config='outputbase digits')
     return captcha
 
+def get_prod_filename(themonth, id, datatype=None):
+    if datatype is None:
+        return ''.join(['.', os.sep, 'dataout', os.sep, str(themonth), os.sep, str(id), '.html'])
+    else:
+        return ''.join(['.', os.sep, 'dataout', os.sep, 'sfda_', str(datatype), '_', str(themonth), '.log'])
+
 def save_data(browser, themonth, id):
-    with open('./' + str(themonth) + '/' + str(id) + '.html','w') as outf:
+    with open(get_prod_filename(themonth,id),'w') as outf:
         outf.write(browser.page_source.encode('utf-8'))
 
 def get_product_xpath():
@@ -65,7 +71,7 @@ def get_product_id(hrefinfo):
     return hrefinfo[:idx2]
 
 def add_log(themonth, *args):
-    with open('sfda_trace_%00d.log' % (int(themonth)), 'a+') as outf:
+    with open(get_prod_filename(themonth, 0, 'trace'), 'a+') as outf:
         xlist = []
         for x in args:
             if isinstance(x,unicode):
@@ -96,7 +102,7 @@ def get_data_page(browser, themonth, pageidx):
         return None
     #load no prod details info
     no_details_prod_list = []
-    with open('sfda_nodetails_' + str(themonth) + '.log') as infile:
+    with open(get_prod_filename(themonth, 0, 'nodetails')) as infile:
         for line in infile:
             if '\t' in line:
                 no_details_prod_list.append( line.strip().split('\t')[0] )
@@ -117,7 +123,7 @@ def get_data_page(browser, themonth, pageidx):
             elem_prod = browser.find_element_by_xpath(prod_xpath)
             prod_name = elem_prod.text.encode('utf-8')
             prod_id = get_product_id(elem_prod.get_attribute('href'))
-            prod_data_path = './' + str(themonth) + '/' + str(prod_id) + '.html'
+            prod_data_path = get_prod_filename(themonth, prod_id)
             if os.path.exists(prod_data_path):
                 continue
             if str(prod_id) in no_details_prod_list:
@@ -232,5 +238,11 @@ def main(themonth, pageidx):
     
 
 if __name__=="__main__":
-    script, themonth, pageidx = argv
-    main(themonth, int(pageidx))
+    if len(argv)==3:
+        script, themonth, pageidx = argv
+        main(themonth, int(pageidx))
+    elif len(argv)==2:
+        script, themonth = argv
+        for i in xrange(int(themonth),10):
+            print '>>> cata %d ---' % (i)
+            main(i, 1)
