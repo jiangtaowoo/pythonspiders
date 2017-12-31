@@ -98,7 +98,8 @@ def get_data_page(browser, themonth, pageidx):
     no_details_prod_list = []
     with open('sfda_nodetails_' + str(themonth) + '.log') as infile:
         for line in infile:
-            no_details_prod_list.append( line.strip().split('\t')[0] )
+            if '\t' in line:
+                no_details_prod_list.append( line.strip().split('\t')[0] )
     print '- getting data for page %d of %d' % (pageidx, page_total)
     elem_page = browser.find_element_by_id('goInt')
     elem_page.clear()
