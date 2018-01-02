@@ -83,6 +83,16 @@ def add_log(themonth, *args):
         outf.write('\n')
         print '   >>> ' + msg_log
 
+def save_prod_order_info(themonth, prod_id, pageidx, reset=False):
+    if reset:
+        fname = get_prod_filename(themonth, 0, 'order')
+        if os.path.exists(fname):
+            os.remove(fname)
+    else:
+        with open(get_prod_filename(themonth, 0, 'order'), 'a+') as outf:
+            outf.write('\t'.join([str(prod_id), str(pageidx)]))
+            outf.write('\n')
+
 def get_data_page(browser, themonth, pageidx):
     captcha_file_path = 'captcha_' + str(themonth) + '.jpg'
     btn_detail_xpath = '//table//tr/td[2]/a[contains(@href,"123.127")]'
@@ -125,9 +135,11 @@ def get_data_page(browser, themonth, pageidx):
             prod_id = get_product_id(elem_prod.get_attribute('href'))
             prod_data_path = get_prod_filename(themonth, prod_id)
             if os.path.exists(prod_data_path):
+                save_prod_order_info(themonth, prod_id, pageidx)
                 continue
             if str(prod_id) in no_details_prod_list:
                 continue
+            save_prod_order_info(themonth, prod_id, pageidx)
             elem_prod.click()
         except NoSuchElementException:
             break
@@ -245,4 +257,5 @@ if __name__=="__main__":
         script, themonth = argv
         for i in xrange(int(themonth),10):
             print '>>> cata %d ---' % (i)
+            save_prod_order_info(i, 0, 0, True)
             main(i, 1)
