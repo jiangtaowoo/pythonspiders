@@ -1,0 +1,112 @@
+www.dd528.com:
+  login_http:
+    url: http://www.dd528.com/login
+    method: post
+    headers:
+      Host: www.dd528.com
+      User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+      Accept: '*/*'
+      Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+      Accept-Encoding: gzip, deflate
+      Referer: http://www.dd528.com/login
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      X-Requested-With: XMLHttpRequest
+      Connection: keep-alive
+    data:
+      uid: UXIXD
+      pwd: PXWXD
+      plugin[sw]: !!str 1366
+      plugin[sh]: !!str 768
+      plugin[iw]: !!str 1301
+      plugin[ih]: !!str 274
+      plugin[ua]: 'Mozilla/5.0+(X11;+Ubuntu;+Linux+x86_64;+rv:57.0)+Gecko/20100101+Firefox/57.0'
+      auto: !!str false
+  data_http:
+    url: http://www.dd528.com/api/catalog
+    method: post
+    headers:
+      Host: www.dd528.com
+      User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+      Accept: 'application/json, text/javascript, */*; q=0.01'
+      Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+      Accept-Encoding: gzip, deflate
+      Referer: http://www.dd528.com/catalog?fci=2000000&offset=%PAGEOFFSET%
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      X-Requested-With: XMLHttpRequest
+      Connection: keep-alive
+    data:
+      fci: !!str 2000000
+      oh: !!str 1
+      ob: !!str 0
+      sci: ''
+      offset: '%PAGEOFFSET%'
+      limit: !!str 100
+pcshop.huimin100.cn:
+  login_http:
+    url: https://pcshop.huimin100.cn/index.php/home/login/login.html
+    method: post
+    headers:
+      Host: "pcshop.huimin100.cn"
+      User-Agent: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0"
+      Accept: "application/json, text/javascript, */*; q=0.01"
+      Accept-Language: "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
+      Accept-Encoding: "gzip, deflate, br"
+      Referer: "https://pcshop.huimin100.cn/index.php/home/login/index.html"
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+      X-Requested-With: "XMLHttpRequest"
+      Connection: "keep-alive"
+    data:
+      pwd: PXWXD
+      supermarketId: UXIXD
+      isRemember: !!str 0
+    datatype: null
+    callback:
+      modulename: callbackhuimin
+      callbackfunc: null
+      generatorfunc: HuiminCallback.login_url_generator
+  data_http:
+    url: https://pcshop.huimin100.cn/index.php/home/index/prodlist.html
+    method: post
+    headers:
+      Host: "pcshop.huimin100.cn"
+      User-Agent: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0"
+      Accept: "*/*"
+      Accept-Language: "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
+      Accept-Encoding: "gzip, deflate, br"
+      Referer: "https://pcshop.huimin100.cn/index.php/home/index/categorylist/cateid/2/pid/2.html"
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+      X-Requested-With: "XMLHttpRequest"
+      Connection: "keep-alive"
+    data:
+      brand_id: !!str 0
+      cate_id: '%CATEGORYID%'
+      sort: !!str 1
+      p: '%PAGEINDEX%'
+zgb.m.jd.com:
+  login_http:
+    url: http://plogin.m.jd.com/user/login.action?appid=100&returnurl=http%3A%2F%2Fzgb.m.jd.com%2FmyLogin.html
+    method: selenium
+    locate:
+      uname: {loctype: 'id', keyword: 'username', action: ['send_keys']}
+      pwd: {loctype: 'id', keyword: 'password', action: ['send_keys']}
+      submit: {loctype: 'id', keyword: 'loginBtn', action: ['click']}
+    data:
+      uname: UXIXD
+      pwd: PXWXD
+  data_http:
+    url: http://zgbgw.m.jd.com/one.queryskusBycid
+    method: post
+    headers:
+      Host: "zgbgw.m.jd.com"
+      User-Agent: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0"
+      Accept: "*/*"
+      Accept-Language: "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
+      Accept-Encoding: "gzip, deflate"
+      Referer: "http://zgb.m.jd.com/category.html"
+      Connection: "keep-alive"
+    data:
+      c: m
+      cv: !!str 3.1.1
+      _: '%TIMESTAMP%'
+      callback: 'Zepto%TIMESTAMP%'
+      body: !!str '{"page":"%PAGEINDEX%","pageSize":"100","cid":"1002"}'

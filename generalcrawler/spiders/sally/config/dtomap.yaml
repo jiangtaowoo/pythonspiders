@@ -1,0 +1,118 @@
+www.dd528.com:
+  callback:
+    classinfo:
+      modulename: callbackdd528
+      classname: Dd528Callback
+    httpinfo:
+      login_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: login_url_generator
+      data_http:
+        data_type: json
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: '/D@data'
+    range: ':'
+  col_def:
+    productid: '/D@data/L./D@id'
+    productclass: '/D@data/L./D@firstCatalogId'
+    productsize: '/D@data/L./D@specification'
+    productname: '/D@data/L./D@name'
+    productunit: '/D@data/L./D@unit'
+    productdate: '/D@data/L./D@produceDate'
+    productstarttime: '/D@data/L./D@startTime'
+    productendtime: '/D@data/L./D@endTime'
+    productleft:  '/D@data/L./D@left'
+    productlimit:  '/D@data/L./D@limit'
+    productorderlimit:  '/D@data/L./D@orderLimit'
+    productsales: '/D@data/L./D@sales'
+    productamount: '/D@data/L./D@amount'
+    productonsalestatus: '/D@data/L./D@onSellStatus'
+    productonsale: '/D@data/L./D@onSale'
+    productimgrl: '/D@data/L./D@imagePath/L@0'
+    productprice: '/D@data/L./D@price'
+    productvipprice: '/D@data/L./D@vipPrice'
+  col_calc:
+    product_url: ['calc_product_url', 'productid']
+    product_brand: ['map_product_brand', 'productname']
+    product_spec: ['map_product_spec', 'productsize', '0']
+    product_qty: ['map_product_spec', 'productsize', '1']
+    product_lmt: ['map_product_spec', 'productsize', '2']
+    product_taste: ['map_product_taste', 'productname']
+    public_date: ['map_today']
+pcshop.huimin100.cn:
+  callback:
+    classinfo:
+      modulename: callbackhuimin
+      classname: HuiminCallback
+    httpinfo:
+      login_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: login_url_generator
+      data_http:
+        data_type: html
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: '//div[contains(@class,"goods_item") and contains(@class,"shenceView")]'
+    range: ':'
+  col_def:
+    productid: './@data-pid'
+    productclass: './@data-classid'
+    productsize: './@data-norm'
+    productname: './@data-name'
+    productunit: './@data-unit'
+    product_lmt: './@data-prominnum'
+    productboxnum: './@data-boxnum'
+    productleft: './@data-minstroenum'
+    productiscoupon: './@data-is_coupon'
+    productisreturn: './@data-is_return'
+    productprice: './@data-price'
+    productsaleprice: './@data-saleprice'
+  col_calc:
+    product_url: ['calc_product_url', 'productid']
+    product_brand: ['map_product_brand', 'productname']
+    product_spec: ['map_product_spec', 'productsize', '0']
+    product_qty: ['map_product_spec', 'productsize', '1']
+    product_taste: ['map_product_taste', 'productname']
+    public_date: ['map_today']
+    productbrand: ['calc_cate_name', '%CATEGORYID%']
+zgb.m.jd.com:
+  callback:
+    classinfo:
+      modulename: callbackjd
+      classname: JDCallback
+    httpinfo:
+      login_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: login_url_generator
+      data_http:
+        data_type: json
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: '/D@data/D@wareInfoList'
+    range: ':'
+  col_def:
+    productid: '/D@data/D@wareInfoList/L./D@skuId'
+    productclass: '/D@data/D@wareInfoList/L./D@firstCatId'
+    productsize: '/D@data/D@wareInfoList/L./D@packageSize'
+    productname: '/D@data/D@wareInfoList/L./D@name'
+    productunit: '/D@data/D@wareInfoList/L./D@saleUnit'
+    product_lmt: '/D@data/D@wareInfoList/L./D@lowPurchaseCount'
+    productsales: '/D@data/D@wareInfoList/L./D@sales'
+    productisreturn: '/D@data/D@wareInfoList/L./D@isSevenReturn'
+    productisshoworgprice: '/D@data/D@wareInfoList/L./D@showOriginPrice'
+    productprice: '/D@data/D@wareInfoList/L./D@price'
+    productsaleprice: '/D@data/D@wareInfoList/L./D@jdPrice'
+  col_calc:
+    product_url: ['calc_product_url', 'productid']
+    product_brand: ['map_product_brand', 'productname']
+    product_spec: ['map_product_spec', 'productsize', '0']
+    product_qty: ['map_product_spec', 'productsize', '1']
+    product_taste: ['map_product_taste', 'productname']
+    public_date: ['map_today']

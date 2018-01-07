@@ -1,0 +1,8 @@
+RUN:
+  邯郸店达: ['www.dd528.com', {UXIXD: 'zzz', PXWXD: 'zzz'}]
+NORUN:
+  天津惠民: ['pcshop.huimin100.cn', {UXIXD: 'zzz', PXWXD: 'zzz'}]
+  重庆惠民: ['pcshop.huimin100.cn', {UXIXD: 'zzz', PXWXD: 'zzz'}]
+  长沙惠民: ['pcshop.huimin100.cn', {UXIXD: 'zzz', PXWXD: 'zzz'}]
+  北京惠民: ['pcshop.huimin100.cn', {UXIXD: 'zzz', PXWXD: 'zzz'}]
+  邯郸掌柜宝: ['zgb.m.jd.com', {UXIXD: 'zzz', PXWXD: 'zzz'}]

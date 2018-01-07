@@ -1,0 +1,6 @@
+ProductStorage:
+  tablename: prod_storage
+ProductPrice:
+  tablename: prod_price
+ProductModel:
+  tablename: prod_details

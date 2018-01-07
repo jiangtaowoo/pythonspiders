@@ -21,9 +21,13 @@ def output_xpath_text(ws, cur_row, cur_col, html, xpath_expression):
     content_list = html.xpath(xpath_expression)
     if len(content_list)>0:
         ws.merge_cells(start_row=cur_row, start_column=cur_col, end_row=cur_row, end_column=cur_col+2)
-        ws.cell(row=cur_row, column=cur_col, value=content_list[0].text)
+        ws.cell(row=cur_row, column=cur_col, value=_stringify_node(content_list[0]))
         return cur_row+1
     return cur_row
+
+def _stringify_node(node):
+    parts = [x for x in node.itertext()]
+    return ''.join(filter(None, parts)).strip()
 
 def output_one_product_info(xlsxfilename, wb, cur_row, themonth, file_idx, prod_info_file_name, prod_page_idx=0):
     prod_info_file_path = '.' + os.sep + 'dataout' + os.sep + str(themonth) + os.sep + prod_info_file_name
@@ -63,7 +67,7 @@ def output_one_product_info(xlsxfilename, wb, cur_row, themonth, file_idx, prod_
     rows_detail = html.xpath(xpath_peifang_detail)
     for pf_idx, pf_title in enumerate(rows_title):
         #表头
-        ws.cell(row=cur_row, column=2, value=pf_title.text)
+        ws.cell(row=cur_row, column=2, value=_stringify_node(pf_title))
         cur_row += 1
         #表内容
         rows = rows_detail[pf_idx].xpath(xpath_peifang)
@@ -99,7 +103,7 @@ def output_one_product_info(xlsxfilename, wb, cur_row, themonth, file_idx, prod_
                             first_cell.alignment = alvc
                         ws.merge_cells(start_row=cur_row, start_column=col_idx+1, end_row=cur_row+rowspan-1, end_column=col_idx+1)
                 #output data
-                ws.cell(row=cur_row, column=col_idx+1, value=colhtml.text)
+                ws.cell(row=cur_row, column=col_idx+1, value=_stringify_node(colhtml))
                 from_idx = col_idx + 1
             cur_row += 1
     cur_row += 1
