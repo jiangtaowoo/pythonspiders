@@ -65,16 +65,16 @@ if __name__=="__main__":
         script, isdebug, spidername = argv
         if isdebug == 'debug':
             main_test(spidername)
-
-    if os.path.exists('products.db'):
-        updatebrandtaste.update_brand_taste()
-    if len(argv)==2:
-        script, excel_file_name = argv
-        if '.xlsx' in excel_file_name:
-            main(excel_file_name, spidername='sally')
-    elif len(argv)==3:
-        script, cmd, sitename = argv
-        if cmd=='flush':
-            updatebrandtaste.flush_today_data(sitename)
     else:
-        main(spidername='sally')
+        if os.path.exists('products.db'):
+            updatebrandtaste.update_brand_taste()
+        if len(argv)==2:
+            script, excel_file_name = argv
+            if '.xlsx' in excel_file_name:
+                main(excel_file_name, spidername='sally')
+        elif len(argv)==3:
+            script, cmd, sitename = argv
+            if cmd=='flush':
+                updatebrandtaste.flush_today_data(sitename)
+        else:
+            main(spidername='sally')

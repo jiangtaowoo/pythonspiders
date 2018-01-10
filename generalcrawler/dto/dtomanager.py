@@ -122,6 +122,6 @@ class DTOManager(object):
         if data:
             data = self._parse_diydata(sitename, data, dmaps)
         #step 5. return nexturl and data
-        if not data and sitehttp is not 'login_http':
+        if not data and 'login_http' not in sitehttp and 'init_http' not in sitehttp:
             next_run_info = None
         return next_run_info, data
