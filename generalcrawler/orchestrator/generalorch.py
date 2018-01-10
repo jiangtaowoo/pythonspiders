@@ -20,10 +20,11 @@ class BaseOrchestrator(object):
         self._init_crawler()
 
     def _init_crawler(self):
-        basepath = os.path.sep.join(['.','spiders',self.spidername,'config'])
-        self.crawler = GeneralCrawler()
+        app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        basepath = os.path.sep.join([app_base_dir,'spiders',self.spidername,'config'])
+        self.crawler = GeneralCrawler(self.spidername)
         self.businessmodel = ModelBase()
-        self.sqliteadaptor = AdaptorSqlite()
+        self.sqliteadaptor = AdaptorSqlite(spidername=self.spidername)
         self.crawler.load_http_config(basepath + os.path.sep + 'http.yaml')
         self.businessmodel.load_model_config(basepath + os.path.sep + 'models.yaml')
         self.sqliteadaptor.load_db_config(basepath + os.path.sep + 'dbs.yaml')

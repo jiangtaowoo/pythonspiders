@@ -32,12 +32,13 @@ class html_element_exists(object):
     return element
 
 class GeneralCrawler(object):
-    def __init__(self):
+    def __init__(self, spidername=''):
         self._session = requests.session()
         self._website_cfgs = None   # everthing in http.yaml
         self._callback_mods = None  # self._callback_mods[sitename][sitehttp] = [(cbobj,cbfunc),(genobj, genfunc)]
         self.session_used = True
         self.dtomgr = None
+        self.spidername = spidername
 
     def _is_cookie_file_available(self, cookies_file_path):
         if os.path.exists(cookies_file_path):
@@ -211,8 +212,9 @@ class GeneralCrawler(object):
 
     def _login_website(self, sitename, sitehttp, now_data_maps):
         #cookies
+        app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         tenant_name = now_data_maps['UXIXD'] if 'UXIXD' in now_data_maps else ''
-        cookies_file_path = ''.join(['.', os.path.sep, 'cookies', os.path.sep, tenant_name, '_', sitename, '.coo'])
+        cookies_file_path = os.path.sep.join([app_base_dir, 'spiders', self.spidername, 'cookies', tenant_name + '_' + sitename + '.coo'])
         if self._is_cookie_file_available(cookies_file_path):
             with open(cookies_file_path) as cookief:
                 cookies_data = requests.utils.cookiejar_from_dict(pickle.load(cookief))

@@ -7,7 +7,9 @@ class BaseCallback(object):
     def __init__(self):
         self._brand_data = None
         self._taste_data = None
-        self._load_brand_taste_cfg(os.path.sep.join(['.', 'config', 'taste.yaml']))
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        cfg_file_path = os.path.sep.join([current_dir, 'config', 'taste.yaml'])
+        self._load_brand_taste_cfg(cfg_file_path)
 
     def _load_brand_taste_cfg(self, brand_taste_cfg_file):
         if os.path.exists(brand_taste_cfg_file):

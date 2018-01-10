@@ -13,27 +13,27 @@ www.dd528.com:
         callbackfunc: convert_data
         generatorfunc: data_url_generator
   row_def:
-    path: '/D@data'
+    path: '/D[data]'
     range: ':'
   col_def:
-    productid: '/D@id'
-    productclass: '/D@firstCatalogId'
-    productsize: '/D@specification'
-    productname: '/D@name'
-    productunit: '/D@unit'
-    productdate: '/D@produceDate'
-    productstarttime: '/D@startTime'
-    productendtime: '/D@endTime'
-    productleft:  '/D@left'
-    productlimit:  '/D@limit'
-    productorderlimit:  '/D@orderLimit'
-    productsales: '/D@sales'
-    productamount: '/D@amount'
-    productonsalestatus: '/D@onSellStatus'
-    productonsale: '/D@onSale'
-    productimgrl: '/D@imagePath/L@0'
-    productprice: '/D@price'
-    productvipprice: '/D@vipPrice'
+    productid: '/D[id]'
+    productclass: '/D[firstCatalogId]'
+    productsize: '/D[specification]'
+    productname: '/D[name]'
+    productunit: '/D[unit]'
+    productdate: '/D[produceDate]'
+    productstarttime: '/D[startTime]'
+    productendtime: '/D[endTime]'
+    productleft:  '/D[left]'
+    productlimit:  '/D[limit]'
+    productorderlimit:  '/D[orderLimit]'
+    productsales: '/D[sales]'
+    productamount: '/D[amount]'
+    productonsalestatus: '/D[onSellStatus]'
+    productonsale: '/D[onSale]'
+    productimgrl: '/D[imagePath]/L[0]'
+    productprice: '/D[price]'
+    productvipprice: '/D[vipPrice]'
   col_calc:
     product_url: ['calc_product_url', 'productid']
     product_brand: ['map_product_brand', 'productname']
@@ -95,20 +95,20 @@ zgb.m.jd.com:
         callbackfunc: convert_data
         generatorfunc: data_url_generator
   row_def:
-    path: '/D@data/D@wareInfoList'
+    path: '/D[data]/D[wareInfoList]'
     range: ':'
   col_def:
-    productid: '/D@skuId'
-    productclass: '/D@firstCatId'
-    productsize: '/D@packageSize'
-    productname: '/D@name'
-    productunit: '/D@saleUnit'
-    product_lmt: '/D@lowPurchaseCount'
-    productsales: '/D@sales'
-    productisreturn: '/D@isSevenReturn'
-    productisshoworgprice: '/D@showOriginPrice'
-    productprice: '/D@price'
-    productsaleprice: '/D@jdPrice'
+    productid: '/D[skuId]'
+    productclass: '/D[firstCatId]'
+    productsize: '/D[packageSize]'
+    productname: '/D[name]'
+    productunit: '/D[saleUnit]'
+    product_lmt: '/D[lowPurchaseCount]'
+    productsales: '/D[sales]'
+    productisreturn: '/D[isSevenReturn]'
+    productisshoworgprice: '/D[showOriginPrice]'
+    productprice: '/D[price]'
+    productsaleprice: '/D[jdPrice]'
   col_calc:
     product_url: ['calc_product_url', 'productid']
     product_brand: ['map_product_brand', 'productname']

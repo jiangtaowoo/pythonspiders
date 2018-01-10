@@ -4,9 +4,10 @@ import yaml
 import sqlite3
 
 class AdaptorSqlite(object):
-    def __init__(self, dbname='products.db'):
+    def __init__(self, spidername='', dbname='products.db'):
+        app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self._dbs_cfg = None
-        self._db_name = dbname
+        self._db_name = os.path.sep.join([app_base_dir, 'spiders', spidername, dbname])
         self._tb_name_exists = []
 
     def _create_table(self, tbname, pk, fieldsname):

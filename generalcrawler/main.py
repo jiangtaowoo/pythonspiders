@@ -4,9 +4,7 @@ from sys import argv
 import datetime
 import functools
 import yaml
-#from spiders.sally.orchestrator.zsorch import ZSOrchestrator
-#import sqlite2xlsx
-#import updatebrandtaste
+import spiders.sally.updatebrandtaste as updatebrandtaste
 
 
 def addinfo_data(data, sitename, tenantname, tenantalias):
@@ -21,26 +19,34 @@ def print_tips(tips, tenantalias):
     print '>>> %s getting data - %s ...' % (tenantalias, tips)
 
 def load_tenant_info(spidername):
-    tenants = yaml.load(open(os.path.sep.join(['.', 'spiders', spidername, 'config', 'tenants.yaml'])))
+    app_base_dir = os.path.dirname(os.path.abspath(__file__))
+    tenants = yaml.load(open(os.path.sep.join([app_base_dir, 'spiders', spidername, 'config', 'tenants.yaml'])))
     return tenants['RUN']
 
-def main(excel_file_name=None, spidername=''):
+def main(spidername='', excel_file_name=None):
+    app_base_dir = os.path.dirname(os.path.abspath(__file__))
     orch_module = __import__('.'.join(['spiders', spidername, 'orchestrator.diyorch']), fromlist=[''])
     orch_cls = getattr(orch_module, 'DiyOrchestrator')
+    persist_module = __import__('.'.join(['spiders', spidername, 'persistentcb']), fromlist=[''])
+    persist_func = getattr(persist_module, 'sqlite_to_xlsx')
     if excel_file_name is None:
         excel_file_name = ''.join(['products_', str(datetime.date.today()), '.xlsx'])
         tenants = load_tenant_info(spidername)
         orch = orch_cls(spidername)
         for talias, tenant_item in tenants.iteritems():
             sitename = tenant_item[0]
-            tname = tenant_item[1]['UXIXD']
+            if len(tenant_item)>1 and 'UXIXD' in tenant_item[1]:
+                tname = tenant_item[1]['UXIXD']
+            else:
+                tname = 'NICKNAME'
             addinfo = {'sitename': sitename, 'tenantname': tname, 'tenantalias': talias}
             orch.regist_addinfo_callback(functools.partial(addinfo_data, **addinfo))
             orch.regist_tips_callback(functools.partial(print_tips, tenantalias=talias))
             orch.setup_entry_info(tenant_item)
             orch.run_pipeline()
     print '>>> saving data to excel ...'
-    sqlite2xlsx.sqlite_to_xlsx(excel_file_name, '2017-12-18')
+    excel_file_name = os.path.sep.join([app_base_dir, 'spiders', spidername, excel_file_name])
+    persist_func(excel_file_name, '2018-1-6')
     print 'Finish!'
 
 
@@ -61,20 +67,22 @@ def main_test(spidername=''):
     print 'Finish!'
 
 if __name__=="__main__":
-    if len(argv)==3:
-        script, isdebug, spidername = argv
-        if isdebug == 'debug':
-            main_test(spidername)
-    else:
-        if os.path.exists('products.db'):
-            updatebrandtaste.update_brand_taste()
-        if len(argv)==2:
-            script, excel_file_name = argv
-            if '.xlsx' in excel_file_name:
-                main(excel_file_name, spidername='sally')
-        elif len(argv)==3:
-            script, cmd, sitename = argv
-            if cmd=='flush':
-                updatebrandtaste.flush_today_data(sitename)
+    if len(argv)>=2:
+        isdebug_or_spidername = argv[1]
+        if isdebug_or_spidername == 'debug' and len(argv)>2:
+            spidername = argv[2]
+            main_test(spidername=spidername)
         else:
-            main(spidername='sally')
+            spidername = argv[1]
+            updatebrandtaste.update_brand_taste()
+            if len(argv)>2:
+                cmd_or_excelfile = argv[2]
+                if cmd_or_excelfile == 'flush' and len(argv)==4:
+                    sitename = argv[3]
+                    updatebrandtaste.flush_today_data(sitename)
+                else:
+                    excel_file_name = cmd_or_excelfile
+                    if '.xlsx' in excel_file_name:
+                        main(excel_file_name=excel_file_name, spidername=spidername)
+            else:
+                main(spidername=spidername)
