@@ -9,24 +9,26 @@ from models.productmodel import ModelBase
 
 
 class BaseOrchestrator(object):
-    def __init__(self):
+    def __init__(self, spidername=''):
         self.crawler = None
         self.businessmodel = None
         self.sqliteadaptor = None
         self.addinfo_cb = None
         self.tips_cb = None
+        self.spidername = spidername
         self.craw_info_q = deque([])
         self._init_crawler()
 
     def _init_crawler(self):
+        basepath = os.path.sep.join(['.','spiders',self.spidername,'config'])
         self.crawler = GeneralCrawler()
         self.businessmodel = ModelBase()
         self.sqliteadaptor = AdaptorSqlite()
-        self.crawler.load_http_config(os.path.sep.join(['.','config', 'http.yaml']))
-        self.businessmodel.load_model_config(os.path.sep.join(['.', 'config', 'models.yaml']))
-        self.sqliteadaptor.load_db_config(os.path.sep.join(['.', 'config', 'dbs.yaml']))
-        dtomgr = DTOManager()
-        dtomgr.load_dto_config(os.path.sep.join(['.', 'config', 'dtomap.yaml']))
+        self.crawler.load_http_config(basepath + os.path.sep + 'http.yaml')
+        self.businessmodel.load_model_config(basepath + os.path.sep + 'models.yaml')
+        self.sqliteadaptor.load_db_config(basepath + os.path.sep + 'dbs.yaml')
+        dtomgr = DTOManager(self.spidername)
+        dtomgr.load_dto_config((basepath + os.path.sep + 'dtomap.yaml'))
         self.crawler.attach_dto(dtomgr=dtomgr)
         self.businessmodel.regist_persist_adaptor(self.sqliteadaptor)
 
@@ -44,7 +46,7 @@ class BaseOrchestrator(object):
         # self.craw_info_q.append( tuple() )
         return False
 
-    def run_pipeline(self):
+    def run_pipeline(self, isdebug=False):
         while self.craw_info_q:
             run_info = self.craw_info_q.popleft()
             if isinstance(run_info, tuple) and len(run_info)==5:
@@ -62,6 +64,9 @@ class BaseOrchestrator(object):
                 for datarow in data_set:
                     if self.addinfo_cb:
                         self.addinfo_cb(datarow)
-                    self.businessmodel.notify_model_info_received(**datarow)
+                    if isdebug:
+                        self.businessmodel.notify_model_info_debug(**datarow)
+                    else:
+                        self.businessmodel.notify_model_info_received(**datarow)
                 if self.tips_cb:
                     self.tips_cb(run_info[0])

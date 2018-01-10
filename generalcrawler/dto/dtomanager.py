@@ -5,13 +5,14 @@ from dto.htmldto import HtmlDTO
 from dto.jsondto import JsonDTO
 
 class DTOManager(object):
-    def __init__(self):
+    def __init__(self, spidername=''):
         self._dto_cfgs = []
         self._cb_funcs = {}    # self._cb_funcs['www.baidu.com']['funcxxname'] = func_xxx
         self._cb_objs = {}    # self._cb_objs['www.baidu.com'] = obj_cb_baidu
         self._http_data_types = {}     # {'sitename': {'sitehttp': datatype}}
         self.jsondto = None         # basedto is a pass through dto
         self.htmldto = None         # basedto is a pass through dto
+        self.spidername = spidername
 
     def _get_sitedto_from_sitename(self, sitename):
         if sitename in self._dto_cfgs:
@@ -25,7 +26,11 @@ class DTOManager(object):
                 if 'callback' in sitedto and 'classinfo' in sitedto['callback']:
                     cb_modname = sitedto['callback']['classinfo']['modulename']
                     cb_clsname = sitedto['callback']['classinfo']['classname']
-                    cb_model = __import__('dto.' + cb_modname, fromlist=[''])
+                    cb_model = None
+                    if len(self.spidername)>0:
+                        cb_model = __import__('spiders.' + self.spidername + '.callback.' + cb_modname, fromlist=[''])
+                    else:
+                        cb_model = __import__('dto.' + cb_modname, fromlist=[''])
                     cb_class = getattr(cb_model, cb_clsname)
                     self._cb_objs[sitename] = cb_class()
                 if cb_model and cb_class:

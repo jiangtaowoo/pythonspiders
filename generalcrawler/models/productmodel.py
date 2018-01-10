@@ -56,6 +56,14 @@ class ModelBase(object):
     def regist_persist_adaptor(self, persist_adaptor):
         self._persist_adaptor = persist_adaptor
 
+    def notify_model_info_debug(self, **kwargs):
+        #just print the model info
+        for modelname, modelcfg in self._models_cfg.iteritems():
+            self._gen_model_data(modelname, **kwargs)
+            if self._fields_data is not None:
+                for k, v in self._fields_data.iteritems():
+                    print k, '=', v
+
     def notify_model_info_received(self, **kwargs):
         for modelname, modelcfg in self._models_cfg.iteritems():
             self._gen_model_data(modelname, **kwargs)

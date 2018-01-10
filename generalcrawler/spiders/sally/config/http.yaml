@@ -59,11 +59,6 @@ pcshop.huimin100.cn:
       pwd: PXWXD
       supermarketId: UXIXD
       isRemember: !!str 0
-    datatype: null
-    callback:
-      modulename: callbackhuimin
-      callbackfunc: null
-      generatorfunc: HuiminCallback.login_url_generator
   data_http:
     url: https://pcshop.huimin100.cn/index.php/home/index/prodlist.html
     method: post

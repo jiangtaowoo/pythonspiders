@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import time
-from generalorch import BaseOrchestrator
+from orchestrator.generalorch import BaseOrchestrator
 
-class ZSOrchestrator(BaseOrchestrator):
+class DiyOrchestrator(BaseOrchestrator):
     def setup_entry_info(self, tenant_item):
         # input: [website, varmaps(opt)]
         # add tuple to craw_info_q: (tips, website, login_http, varmaps, sleepinterval)

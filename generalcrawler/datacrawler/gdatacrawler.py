@@ -7,7 +7,29 @@ import datetime
 import yaml
 import requests
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.proxy import ProxyType
+from selenium.webdriver.common.proxy import Proxy
+
+class html_element_exists(object):
+  def __init__(self, bywhat, id_or_name_or_xpath):
+    self.bywhat = bywhat
+    self.id_name_xpath = id_or_name_or_xpath
+
+  def __call__(self, driver):
+    try:
+        if self.bywhat == 'id':
+            element = driver.find_element_by_id(self.id_name_xpath)   # Finding the referenced element
+        elif self.bywhat == 'name':
+            element = driver.find_element_by_name(self.id_name_xpath)   # Finding the referenced element
+        elif self.bywhat == 'xpath':
+            element = driver.find_element_by_xpath(self.id_name_xpath)   # Finding the referenced element
+        else:
+            return False
+    except NoSuchElementException:
+        return False
+    return element
 
 class GeneralCrawler(object):
     def __init__(self):
@@ -49,14 +71,42 @@ class GeneralCrawler(object):
                 return copy.deepcopy(siteinfo[sitehttp])
         return None
 
+    def _calc_proxy_profile(self, proxy_info, drivertype='phantomjs'):
+        if drivertype=='chrome':
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('--proxy-server=http://%s' % (proxy_info))
+            return chrome_options
+        elif drivertype=='firefox':
+            profile = webdriver.FirefoxProfile()
+            proxyobj = Proxy({
+            'proxyType': ProxyType.MANUAL,
+            'httpProxy': proxy_info,
+            'ftpProxy': proxy_info,
+            'sslProxy': proxy_info,
+            'noProxy': '' # set this value as desired
+            })
+            profile.set_proxy(proxyobj)
+            profile.update_preferences()
+            return profile
+        serv_args = ['--proxy=%s' % (proxy_info), '--proxy-type=http',]
+        #'--proxy-auth=username:password'
+        return serv_args
+
     def _selenium_data(self, siteinfo, now_data_maps):
-        dr = webdriver.Firefox()
         if siteinfo['method'] != 'selenium':
             return None, None
-        f_e_by_id = dr.find_element_by_id
-        f_e_by_name = dr.find_element_by_name
-        f_e_by_xpath = dr.find_element_by_xpath
-        loctype_func_map = {'id': f_e_by_id, 'name': f_e_by_name, 'xpath': f_e_by_xpath}
+        proxies = None
+        if 'proxy' in siteinfo:
+            proxies = siteinfo['proxy']
+        dr = None
+        if proxies:
+            dr = webdriver.Firefox(firefox_profile=self._calc_proxy_profile(proxies, 'firefox'))
+        else:
+            dr = webdriver.Firefox()
+        #f_e_by_id = dr.find_element_by_id
+        #f_e_by_name = dr.find_element_by_name
+        #f_e_by_xpath = dr.find_element_by_xpath
+        #loctype_func_map = {'id': f_e_by_id, 'name': f_e_by_name, 'xpath': f_e_by_xpath}
         url = siteinfo['url'] if 'url' in siteinfo else ''
         payload = siteinfo['data'] if 'data' in siteinfo else ''
         locateinfo = siteinfo['locate'] if 'locate' in siteinfo else ''
@@ -66,7 +116,8 @@ class GeneralCrawler(object):
         elems = dict()
         for ename, einfo in locateinfo.iteritems():
             try:
-                e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
+                e_obj = WebDriverWait(dr, 60).until(html_element_exists(einfo['loctype'], einfo['keyword']))
+                #e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
                 elems[ename] = {'send_keys': e_obj.send_keys, 'clear': e_obj.clear, 'click': e_obj.click}
             except NoSuchElementException:
                 print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
@@ -103,13 +154,22 @@ class GeneralCrawler(object):
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
         payload = siteinfo['data'] if 'data' in siteinfo else ''
+        proxies = None
+        if 'proxy' in siteinfo:
+            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
         url = self._replace_keymapping(url, now_data_maps)
         self._replace_keymapping(headers, now_data_maps)
         self._replace_keymapping(payload, now_data_maps)
         if self.session_used:
-            rsp = self._session.post(url, headers=headers, data=payload)
+            if proxies:
+                rsp = self._session.post(url, headers=headers, data=payload, proxies=proxies)
+            else:
+                rsp = self._session.post(url, headers=headers, data=payload)
         else:
-            rsp = requests.post(url, headers=headers, data=payload)
+            if proxies:
+                rsp = requests.post(url, headers=headers, data=payload, proxies=proxies)
+            else:
+                rsp = requests.post(url, headers=headers, data=payload)
         return rsp
 
     def _get_data(self, siteinfo, now_data_maps):
@@ -118,20 +178,35 @@ class GeneralCrawler(object):
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
         payload = siteinfo['data'] if 'data' in siteinfo else ''
+        proxies = None
+        if 'proxy' in siteinfo:
+            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
         url = self._replace_keymapping(url, now_data_maps)
         self._replace_keymapping(headers, now_data_maps)
         self._replace_keymapping(payload, now_data_maps)
         rsp = None
         if payload:
             if self.session_used:
-                rsp = self._session.get(url, headers=headers, params=payload)
+                if proxies:
+                    rsp = self._session.get(url, headers=headers, params=payload, proxies=proxies)
+                else:
+                    rsp = self._session.get(url, headers=headers, params=payload)
             else:
-                rsp = requests.get(url, headers=headers, params=payload)
+                if proxies:
+                    rsp = requests.get(url, headers=headers, params=payload, proxies=proxies)
+                else:
+                    rsp = requests.get(url, headers=headers, params=payload)
         else:
             if self.session_used:
-                rsp = self._session.get(url, headers=headers)
+                if proxies:
+                    rsp = self._session.get(url, headers=headers, proxies=proxies)
+                else:
+                    rsp = self._session.get(url, headers=headers)
             else:
-                rsp = requests.get(url, headers=headers)
+                if proxies:
+                    rsp = requests.get(url, headers=headers, proxies=proxies)
+                else:
+                    rsp = requests.get(url, headers=headers)
         return rsp
 
     def _login_website(self, sitename, sitehttp, now_data_maps):
