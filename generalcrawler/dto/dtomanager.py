@@ -14,10 +14,10 @@ class DTOManager(object):
         self.htmldto = None         # basedto is a pass through dto
         self.spidername = spidername
 
-    def _get_sitedto_from_sitename(self, sitename):
-        if sitename in self._dto_cfgs:
-            return self._dto_cfgs[sitename]
-        return None
+    #def _get_sitedto_from_sitename(self, sitename):
+    #    if sitename in self._dto_cfgs:
+    #        return self._dto_cfgs[sitename]
+    #    return None
 
     def _load_dto_callback(self):
         if self._dto_cfgs:
