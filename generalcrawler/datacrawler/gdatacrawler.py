@@ -51,8 +51,8 @@ class GeneralCrawler(object):
     def _replace_keymapping(self, data, datamaps):
         # data={"Referer": "http://www.xxxx.com?offset=%PAGEINDEX%"}  datamaps={"%PAGEINDEX%": "5"}
         # data={"Referer": "http://www.xxxx.com?offset=5"}
-        if not isinstance(datamaps,dict) or not data:
-            return None
+        if not isinstance(datamaps,dict):
+            return data
         if isinstance(data,dict):
             for k, v in datamaps.iteritems():
                 for kk, vv in data.iteritems():

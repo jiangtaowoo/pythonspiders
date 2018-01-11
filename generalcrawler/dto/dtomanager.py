@@ -95,13 +95,15 @@ class DTOManager(object):
     def exec_callback(self, data, run_info):
         (tips, sitename, sitehttp, dmaps, sleepinterval) = run_info
         if sitename not in self._dto_cfgs:
-            return None, None
+            return None, None, None
         if sitehttp not in self._http_data_types[sitename]:
-            return None, None
+            return None, None, None
         #step 1. general next url and dynamic datamapping
+        datamodulelist = self._dto_cfgs[sitename]['datamodule']
         cb_generatorname = self._dto_cfgs[sitename]['callback']['httpinfo'][sitehttp]['generatorfunc']
         cb_site_obj = self._cb_objs[sitename]
         cb_generator_func = self._cb_funcs[sitename][cb_generatorname] if cb_generatorname else None
+        next_run_info = None
         if cb_generator_func:
             next_run_info = cb_generator_func(cb_site_obj, data, dmaps)
         #step 2. pre-process data in callback class
@@ -124,4 +126,4 @@ class DTOManager(object):
         #step 5. return nexturl and data
         if not data and 'login_http' not in sitehttp and 'init_http' not in sitehttp:
             next_run_info = None
-        return next_run_info, data
+        return next_run_info, data, datamodulelist

@@ -54,7 +54,7 @@ class BaseOrchestrator(object):
                 rsp_data = self.crawler.process_request(*run_info[1:])
                 if isinstance(rsp_data, ReqResponse):
                     rsp_data = rsp_data.text
-                next_rinfos, data_set = self.crawler.exec_callback(rsp_data, run_info)
+                next_rinfos, data_set, av_data_module = self.crawler.exec_callback(rsp_data, run_info)
                 # add next running info to queue (tips,website,http,varmaps,sleepinterval)
                 if next_rinfos:
                     for next_rinfo in next_rinfos:
@@ -66,8 +66,8 @@ class BaseOrchestrator(object):
                     if self.addinfo_cb:
                         self.addinfo_cb(datarow)
                     if isdebug:
-                        self.businessmodel.notify_model_info_debug(**datarow)
+                        self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
                     else:
-                        self.businessmodel.notify_model_info_received(**datarow)
+                        self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
                 if self.tips_cb:
                     self.tips_cb(run_info[0])

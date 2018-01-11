@@ -51,22 +51,30 @@ class ModelBase(object):
                     if fname in kwargs:
                         self._fields_data[fname] = beautiful_str_data(kwargs[fname])
         if self._fields_data:   #generate pk data
-            self._pk_data = {k: v for k, v in self._fields_data.iteritems() if k in pk}
+            for k in pk:
+                if k in self._fields_data:
+                    self._pk_data[k] = self._fields_data[k]
+                else:
+                    self._pk_data = None
+                    break
+            #self._pk_data = {k: v for k, v in self._fields_data.iteritems() if k in pk}
 
     def regist_persist_adaptor(self, persist_adaptor):
         self._persist_adaptor = persist_adaptor
 
-    def notify_model_info_debug(self, **kwargs):
+    def notify_model_info_debug(self, av_data_module, **kwargs):
         #just print the model info
         for modelname, modelcfg in self._models_cfg.iteritems():
-            self._gen_model_data(modelname, **kwargs)
-            if self._fields_data is not None:
-                for k, v in self._fields_data.iteritems():
-                    print k, '=', v
+            if modelname in av_data_module:
+                self._gen_model_data(modelname, **kwargs)
+                if self._fields_data is not None:
+                    for k, v in self._fields_data.iteritems():
+                        print k, '=', v
 
-    def notify_model_info_received(self, **kwargs):
+    def notify_model_info_received(self, av_data_module, **kwargs):
         for modelname, modelcfg in self._models_cfg.iteritems():
-            self._gen_model_data(modelname, **kwargs)
-            if self._fields_data is not None:
-                if not self._persist_adaptor.data_exists(modelname, modelcfg, **self._pk_data):
-                    self._persist_adaptor.save_data(modelname, modelcfg, **self._fields_data)
+            if modelname in av_data_module:
+                self._gen_model_data(modelname, **kwargs)
+                if self._pk_data is not None and self._fields_data is not None:
+                    if not self._persist_adaptor.data_exists(modelname, modelcfg, **self._pk_data):
+                        self._persist_adaptor.save_data(modelname, modelcfg, **self._fields_data)

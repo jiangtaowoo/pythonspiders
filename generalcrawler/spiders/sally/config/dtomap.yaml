@@ -1,4 +1,5 @@
 www.dd528.com:
+  datamodule: ['ProductModel', 'ProductPrice']
   callback:
     classinfo:
       modulename: callbackdd528
@@ -43,6 +44,7 @@ www.dd528.com:
     product_taste: ['map_product_taste', 'productname']
     public_date: ['map_today']
 pcshop.huimin100.cn:
+  datamodule: ['ProductModel', 'ProductPrice']
   callback:
     classinfo:
       modulename: callbackhuimin
@@ -81,6 +83,7 @@ pcshop.huimin100.cn:
     public_date: ['map_today']
     productbrand: ['calc_cate_name', '%CATEGORYID%']
 zgb.m.jd.com:
+  datamodule: ['ProductModel', 'ProductPrice']
   callback:
     classinfo:
       modulename: callbackjd
