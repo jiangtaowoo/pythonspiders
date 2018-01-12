@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import json
+import time
+import copy
 from collections import deque
 from requests.models import Response as ReqResponse
 from datacrawler.gdatacrawler import GeneralCrawler
@@ -7,6 +10,21 @@ from dto.dtomanager import DTOManager
 from persistadaptor.baseadaptor import AdaptorSqlite
 from models.productmodel import ModelBase
 
+def timeit_by_dict(store_dict, seg1, seg2):
+    def timeit(method_to_be_timed):
+        def timed(*args, **kw):
+            ts = time.time()
+            result = method_to_be_timed(*args, **kw)
+            te = time.time()
+            if seg1 not in store_dict:
+                store_dict[seg1] = dict()
+            if seg2[0] in store_dict[seg1]:
+                store_dict[seg1][seg2[0]] = store_dict[seg1][seg2[0]]+te-ts
+            else:
+                store_dict[seg1][seg2[0]] = te-ts
+            return result
+        return timed
+    return timeit
 
 class BaseOrchestrator(object):
     def __init__(self, spidername=''):
@@ -48,13 +66,36 @@ class BaseOrchestrator(object):
         return False
 
     def run_pipeline(self, isdebug=False):
+        timed_var_dict = dict()
+        timed_var_site = [0]
+
+        @timeit_by_dict(timed_var_dict, 'WEB_REQUEST', timed_var_site)
+        def timed_process_request(run_info):
+            return self.crawler.process_request(*run_info[1:])
+
+        @timeit_by_dict(timed_var_dict, 'DTO_CALLBACK', timed_var_site)
+        def timed_process_callback(rsp_data, run_info):
+            return self.crawler.exec_callback(rsp_data, run_info)
+
+        @timeit_by_dict(timed_var_dict, 'DB_OPERATE', timed_var_site)
+        def timed_process_database(av_data_module, datarow):
+            self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+
+        @timeit_by_dict(timed_var_dict, 'TIP_OUTPUT', timed_var_site)
+        def timed_process_tips(run_info):
+            self.tips_cb(run_info[0])
+
+        current_ts = time.time()
         while self.craw_info_q:
             run_info = self.craw_info_q.popleft()
             if isinstance(run_info, tuple) and len(run_info)==5:
-                rsp_data = self.crawler.process_request(*run_info[1:])
+                #rsp_data = self.crawler.process_request(*run_info[1:])
+                timed_var_site[0] = run_info[1]
+                rsp_data = timed_process_request(run_info)
                 if isinstance(rsp_data, ReqResponse):
                     rsp_data = rsp_data.text
-                next_rinfos, data_set, av_data_module = self.crawler.exec_callback(rsp_data, run_info)
+                #next_rinfos, data_set, av_data_module = self.crawler.exec_callback(rsp_data, run_info)
+                next_rinfos, data_set, av_data_module = timed_process_callback(rsp_data, run_info)
                 # add next running info to queue (tips,website,http,varmaps,sleepinterval)
                 if next_rinfos:
                     for next_rinfo in next_rinfos:
@@ -68,6 +109,20 @@ class BaseOrchestrator(object):
                     if isdebug:
                         self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
                     else:
-                        self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+                        #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+                        timed_process_database(av_data_module, datarow)
                 if self.tips_cb:
-                    self.tips_cb(run_info[0])
+                    #self.tips_cb(run_info[0])
+                    timed_process_tips(run_info)
+
+                ts = time.time()
+                if ts-current_ts>60:
+                    current_ts = ts
+                    with open('timed_info_%s.txt' % (self.spidername), 'a+') as outf:
+                        out_dict = copy.deepcopy(timed_var_dict)
+                        for kt, vt in timed_var_dict.iteritems():
+                            for sitehttp, t in vt.iteritems():
+                                out_dict[kt][sitehttp] = int(t)
+                        outf.write(json.dumps(out_dict))
+                        outf.write('\n')
+        self.businessmodel.notify_model_info_end()

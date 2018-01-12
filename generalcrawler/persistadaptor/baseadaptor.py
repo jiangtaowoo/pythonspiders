@@ -2,6 +2,7 @@
 import os
 import yaml
 import sqlite3
+import time
 
 class AdaptorSqlite(object):
     def __init__(self, spidername='', dbname='products.db'):
@@ -9,6 +10,24 @@ class AdaptorSqlite(object):
         self._dbs_cfg = None
         self._db_name = os.path.sep.join([app_base_dir, 'spiders', spidername, dbname])
         self._tb_name_exists = []
+        self.conn = None
+        self.cur_ts = int(time.time())
+
+    def open_database(self):
+        self.conn = sqlite3.connect(self._db_name)
+
+    def close_database(self):
+        if self.conn:
+            self.conn.commit()
+            self.conn.close()
+            self.conn = None
+
+    def commit_database(self):
+        if self.conn:
+            ts = int(time.time())
+            if ts-self.cur_ts > 60:
+                self.cur_ts = ts
+                self.conn.commit()
 
     def _create_table(self, tbname, pk, fieldsname):
         sql_fields = ','.join(fieldsname)
@@ -38,13 +57,15 @@ class AdaptorSqlite(object):
                     sql_vals.append("'" + str(v) + "'")
             sql_fields = ','.join(sql_fields)
             sql_vals = ','.join(sql_vals)
-            conn = sqlite3.connect(self._db_name)
-            cur = conn.cursor()
+            if not self.conn:
+                self.open_database()
+            #conn = sqlite3.connect(self._db_name)
+            cur = self.conn.cursor()
             sql = "insert into %s (%s) values(%s)" % (tbname, sql_fields, sql_vals)
             cur.execute(sql)
             cur.close()
-            conn.commit()
-            conn.close()
+            #conn.commit()
+            #conn.close()
 
     def data_exists(self, modelname, modelcfg, **kwargs):
         record_exists = False
@@ -58,15 +79,17 @@ class AdaptorSqlite(object):
                 self._tb_name_exists.append(tbname)
             sql_cond = [str(k) + "='" + str(v) + "'" for k,v in kwargs.iteritems()]  #[col1='val1', col2='val2']
             sql_cond = ' and '.join(sql_cond)                           #col1='val1' and col2='val2'
-            conn = sqlite3.connect(self._db_name)
-            cur = conn.cursor()
+            if not self.conn:
+                self.open_database()
+            #conn = sqlite3.connect(self._db_name)
+            cur = self.conn.cursor()
             sql = "select * from %s where %s" % (tbname, sql_cond)
             cur.execute(sql)
             for datarow in cur:
                 record_exists = True
                 break
             cur.close()
-            conn.close()
+            #conn.close()
         return record_exists
 
     def load_data(self, tablename, fieldslist, **kwargs):

@@ -78,3 +78,6 @@ class ModelBase(object):
                 if self._pk_data is not None and self._fields_data is not None:
                     if not self._persist_adaptor.data_exists(modelname, modelcfg, **self._pk_data):
                         self._persist_adaptor.save_data(modelname, modelcfg, **self._fields_data)
+
+    def notify_model_info_end(self):
+        self._persist_adaptor.close_database()
