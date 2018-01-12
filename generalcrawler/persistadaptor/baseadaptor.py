@@ -14,7 +14,8 @@ class AdaptorSqlite(object):
         self.cur_ts = int(time.time())
 
     def open_database(self):
-        self.conn = sqlite3.connect(self._db_name)
+        if not self.conn:
+            self.conn = sqlite3.connect(self._db_name)
 
     def close_database(self):
         if self.conn:
@@ -32,13 +33,14 @@ class AdaptorSqlite(object):
     def _create_table(self, tbname, pk, fieldsname):
         sql_fields = ','.join(fieldsname)
         sql_pk = ','.join(pk)
-        conn = sqlite3.connect(self._db_name)
-        cur = conn.cursor()
+        if not self.conn:
+            self.open_database()
+        cur = self.conn.cursor()
         sql = 'CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (%s));' % (tbname, sql_fields, sql_pk)
         cur.execute(sql)
         cur.close()
-        conn.commit()
-        conn.close()
+        self.conn.commit()
+        #conn.close()
 
     def load_db_config(self, db_yaml_config_filepath):
         if os.path.exists(db_yaml_config_filepath):
@@ -94,8 +96,10 @@ class AdaptorSqlite(object):
 
     def load_data(self, tablename, fieldslist, **kwargs):
         load_fail_ret = False
-        conn = sqlite3.connect(self._db_name)
-        cur = conn.cursor()
+        if not self.conn:
+            self.open_database()
+        #conn = sqlite3.connect(self._db_name)
+        cur = self.conn.cursor()
         # check tablename exists
         sql = 'PRAGMA table_info(%s)' % (tablename)
         cur.execute(sql)
@@ -129,8 +133,10 @@ class AdaptorSqlite(object):
             data_set = [[x for x in row] for row in res]
             if data_set:
                 cur.close()
-                conn.close()
+                #conn.close()
+                self.close_database()
                 return fieldnames, data_set
         cur.close()
-        conn.close()
+        #conn.close()
+        self.close_database()
         return None, None
