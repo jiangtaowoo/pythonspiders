@@ -1,0 +1,5 @@
+# -*- coding: utf-8 -*-
+RUN:
+  NordStrom: ['shop.nordstrom.com']
+  Amazon: ['www.amazon.com']
+NORUN:

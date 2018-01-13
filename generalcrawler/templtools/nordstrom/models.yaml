@@ -1,0 +1,9 @@
+ProductModel:
+  PK: ['productid']
+  cols:
+    productid: 1
+    productbrand: 0
+    productname: 0
+    productcolor: 0
+    productprice: 0
+    productpricecut: 0

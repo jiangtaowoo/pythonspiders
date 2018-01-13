@@ -1,0 +1,31 @@
+# -*- coding: utf-8 -*-
+{%- for SITE_INFO in JJ2_sites %}
+{%- if SITE_INFO[5] %}
+{%- set modlist = SITE_INFO[5].split(',') %}
+{%- endif %}
+{{ SITE_INFO[1] }}:
+  datamodule: [{%- for modname in modlist %}'{{ modname }}'{%- endfor %}]
+  callback:
+    classinfo:
+      modulename: {%- if SITE_INFO[3]%} {{SITE_INFO[3]}}{%else%} null{%endif%}
+      classname: {%- if SITE_INFO[4]%} {{SITE_INFO[4]}}{%else%} null{%endif%}
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: html
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: ''
+  col_def:
+    {%- for modname in modlist %}
+    {%- for col in JJ2_modinfos[modname].cols %}
+    {{col}}: ''
+    {%- endfor %}
+    {%- endfor %}
+  col_calc:
+    diycolx: ['func', 'colid']
+{%- endfor %}

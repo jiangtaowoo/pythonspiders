@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+shop.nordstrom.com:
+  datamodule: ['ProductModel']
+  callback:
+    classinfo:
+      modulename: callbacknds
+      classname: NDSCallback
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: html
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: ''
+  col_def:
+    productprice: ''
+    productcolor: ''
+    productpricecut: ''
+    productbrand: ''
+    productid: ''
+    productname: ''
+  col_calc:
+    diycolx: ['func', 'colid']
+    diycoly: ['func2', 'colid', 'colid2']
+www.amazon.com:
+  datamodule: []
+  callback:
+    classinfo:
+      modulename: callbacknds
+      classname: AmazonCallback
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: html
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: ''
+  col_def:
+  col_calc:
+    diycolx: ['funcxxx', 'colid', 'datetimex']

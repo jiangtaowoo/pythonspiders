@@ -1,0 +1,9 @@
+# -*- coding: utf-8 -*-
+RUN:
+  {%- for SITE_INFO in JJ2_sites %}
+  {{ SITE_INFO[0] }}: ['{{ SITE_INFO[1] }}']
+  {%- endfor %}
+NORUN:
+  {%- for SITE_INFO in sites %}
+  {{ SITE_INFO[0] }}: ['{{ SITE_INFO[1] }}']
+  {%- endfor %}
