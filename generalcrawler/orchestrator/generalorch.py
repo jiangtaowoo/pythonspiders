@@ -113,6 +113,7 @@ class BaseOrchestrator(object):
                     except ConnectionError:
                         hash_runinfo = (run_info[0],run_info[1],run_info[2],json.dumps(run_info[3]),run_info[4])
                         if hash_runinfo not in self.run_info_retry:
+                            try_cnt = 0
                             self.run_info_retry[hash_runinfo] = 0
                         else:
                             try_cnt = self.run_info_retry[hash_runinfo]
