@@ -187,7 +187,6 @@ class BaseOrchestrator(object):
         self.parser_cnt = c_consumer_size
         self.crawler_latest_work_time = [time.time()]*c_worker_size
         self.parser_latest_work_time = [time.time()] * c_consumer_size
-        #sem = BoundedSemaphore(c_sem_size)
         #3.1 create worker greenlets
         for i in xrange(0,c_worker_size):
             threads.append( gevent.spawn(self.url_request_worker, 'url_crawler_worker', i+1, timed_funcs, isdebug) )
