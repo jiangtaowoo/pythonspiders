@@ -81,17 +81,17 @@ class BaseOrchestrator(object):
         # self.craw_info_q.append( tuple() )
         return False
 
-    def parser_wait_toolong(self):
-        ts = time.time()
-        for i in xrange(0, self.parser_cnt):
-            if ts-self.parser_latest_work_time[i] < 20:
-                return False
-        return True
-
     def crawler_wait_toolong(self):
         ts = time.time()
         for i in xrange(0, self.crawler_cnt):
-            if ts-self.crawler_latest_work_time[i] < 20:
+            if ts-self.crawler_latest_work_time[i] < 5:
+                return False
+        return True
+
+    def parser_wait_toolong(self):
+        ts = time.time()
+        for i in xrange(0, self.parser_cnt):
+            if ts-self.parser_latest_work_time[i] < 5:
                 return False
         return True
 
@@ -131,6 +131,7 @@ class BaseOrchestrator(object):
         while self.rsp_data_q or not self.crawler_wait_toolong():
             #print '%s - %d is working' % (workername, workerid)
             if self.rsp_data_q:
+                #print 'http_q: %d, data_q: %d' % (len(self.craw_info_q), len(self.rsp_data_q))
                 self.parser_latest_work_time[workerid-1] = time.time()
                 run_info, rsp_data = self.rsp_data_q.popleft()
                 next_rinfos, data_set, av_data_module = timed_process_callback(rsp_data, run_info)
@@ -175,7 +176,11 @@ class BaseOrchestrator(object):
     def dump_failed_task(self):
         if isinstance(self.run_info_retry,dict):
             with open('%s_failed_task.log' % (self.spidername), 'a+') as outf:
-                outf.write(json.dumps(self.run_info_retry))
+                for hash_runinfo, try_cnt in self.run_info_retry.iteritems():
+                    outf.write(try_cnt)
+                    outf.write('\t'.join(map(unicode,list(hash_runinfo))))
+                    outf.write('\n')
+                #outf.write(json.dumps(self.run_info_retry))
 
     def run_pipeline(self, isdebug=False):
         timed_var_dict = self.timed_var_dict
@@ -218,8 +223,23 @@ class BaseOrchestrator(object):
         self.dump_failed_task()
 
     def run_pipeline_v0(self, isdebug=False):
-        timed_var_dict = dict()
-        timed_var_site = [0]
+        timed_var_dict = self.timed_var_dict
+        timed_var_site = self.timed_var_site
+        @timeit_by_dict(timed_var_dict, 'WEB_REQUEST', timed_var_site)
+        def timed_process_request(run_info):
+            return self.crawler.process_request(*run_info[1:])
+
+        @timeit_by_dict(timed_var_dict, 'DTO_CALLBACK', timed_var_site)
+        def timed_process_callback(rsp_data, run_info):
+            return self.crawler.exec_callback(rsp_data, run_info)
+
+        @timeit_by_dict(timed_var_dict, 'DB_OPERATE', timed_var_site)
+        def timed_process_database(av_data_module, datarow):
+            self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+
+        @timeit_by_dict(timed_var_dict, 'TIP_OUTPUT', timed_var_site)
+        def timed_process_tips(run_info):
+            self.tips_cb(run_info[0])
 
         current_ts = time.time()
         while self.craw_info_q:
@@ -227,11 +247,11 @@ class BaseOrchestrator(object):
             if isinstance(run_info, tuple) and len(run_info)==5:
                 #rsp_data = self.crawler.process_request(*run_info[1:])
                 timed_var_site[0] = run_info[1]
-                rsp_data = self.timed_process_request(run_info)
+                rsp_data = timed_process_request(run_info)
                 if isinstance(rsp_data, ReqResponse):
                     rsp_data = rsp_data.text
                 #next_rinfos, data_set, av_data_module = self.crawler.exec_callback(rsp_data, run_info)
-                next_rinfos, data_set, av_data_module = self.timed_process_callback(rsp_data, run_info)
+                next_rinfos, data_set, av_data_module = timed_process_callback(rsp_data, run_info)
                 # add next running info to queue (tips,website,http,varmaps,sleepinterval)
                 if next_rinfos:
                     for next_rinfo in next_rinfos:
@@ -246,10 +266,10 @@ class BaseOrchestrator(object):
                         self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
                     else:
                         #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
-                        self.timed_process_database(av_data_module, datarow)
+                        timed_process_database(av_data_module, datarow)
                 if self.tips_cb:
                     #self.tips_cb(run_info[0])
-                    self.timed_process_tips(run_info)
+                    timed_process_tips(run_info)
 
                 ts = time.time()
                 if ts-current_ts>60:
