@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 from sys import argv
 import datetime
 import functools
 import yaml
 import spiders.sally.updatebrandtaste as updatebrandtaste
 
+def time_decorator(method_to_be_timed):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method_to_be_timed(*args, **kw)
+        te = time.time()
+        print 'func %s took %2.4fsec' % (method_to_be_timed.__name__, te-ts)
+        return result
+    return timed
 
 def addinfo_data(data, sitename, tenantname, tenantalias):
     if isinstance(data,dict):
@@ -23,6 +32,7 @@ def load_tenant_info(spidername):
     tenants = yaml.load(open(os.path.sep.join([app_base_dir, 'spiders', spidername, 'config', 'tenants.yaml'])))
     return tenants['RUN']
 
+@time_decorator
 def main(spidername='', excel_file_name=None):
     app_base_dir = os.path.dirname(os.path.abspath(__file__))
     orch_module = __import__('.'.join(['spiders', spidername, 'orchestrator.diyorch']), fromlist=[''])
@@ -49,7 +59,7 @@ def main(spidername='', excel_file_name=None):
     #persist_func(excel_file_name, '2018-1-6')
     print 'Finish!'
 
-
+@time_decorator
 def main_test(spidername=''):
     mod_name = '.'.join(['spiders', spidername, 'orchestrator.diyorch'])
     orch_module = __import__(mod_name, fromlist=[''])

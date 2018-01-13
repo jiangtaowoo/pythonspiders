@@ -82,14 +82,14 @@ class BaseOrchestrator(object):
     def parser_wait_toolong(self):
         ts = time.time()
         for i in xrange(0, self.parser_cnt):
-            if ts-self.parser_latest_work_time[i] < 60:
+            if ts-self.parser_latest_work_time[i] < 20:
                 return False
         return True
 
     def crawler_wait_toolong(self):
         ts = time.time()
         for i in xrange(0, self.crawler_cnt):
-            if ts-self.crawler_latest_work_time[i] < 60:
+            if ts-self.crawler_latest_work_time[i] < 20:
                 return False
         return True
 
@@ -109,9 +109,9 @@ class BaseOrchestrator(object):
                     self.rsp_data_q.append((run_info, rsp_data))
             else:
                 gevent.sleep(0)
-        print '%s - %d is dying' % (workername, workerid)
-        with open('threads_info.log', 'a+') as outf:
-            outf.write( 'worker %s %d quitting\n' % (workername, workerid) )
+        print '%s - %d is quiting' % (workername, workerid)
+        #with open('threads_info.log', 'a+') as outf:
+        #    outf.write( 'worker %s %d quitting\n' % (workername, workerid) )
 
     def data_callback_worker(self, workername, workerid, timed_funcs, isdebug):
         timed_process_request, timed_process_callback, timed_process_database, timed_process_tips = timed_funcs
@@ -145,9 +145,9 @@ class BaseOrchestrator(object):
                     self.record_time_elapsed()
             else:
                 gevent.sleep(0)
-        print '%s - %d is dying' % (workername, workerid)
-        with open('threads_info.log', 'a+') as outf:
-            outf.write( 'worker %s-<%d> quitting\n' % (workername, workerid) )
+        print '%s - %d is quiting' % (workername, workerid)
+        #with open('threads_info.log', 'a+') as outf:
+        #    outf.write( 'worker %s-<%d> quitting\n' % (workername, workerid) )
 
     def record_time_elapsed(self):
         with open('timed_info_%s.txt' % (self.spidername), 'a+') as outf:
@@ -180,7 +180,7 @@ class BaseOrchestrator(object):
         timed_funcs = (timed_process_request, timed_process_callback, timed_process_database, timed_process_tips)
         #step3. create worker greenlet
         threads = []
-        c_worker_size = 10
+        c_worker_size = 20
         c_consumer_size = 1
         #c_sem_size = 1
         self.crawler_cnt = c_worker_size
