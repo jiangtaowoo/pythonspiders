@@ -4,6 +4,7 @@ import json
 import time
 import copy
 from collections import deque
+from requests.exceptions import ConnectionError
 from requests.models import Response as ReqResponse
 from datacrawler.gdatacrawler import GeneralCrawler
 from dto.dtomanager import DTOManager
@@ -50,6 +51,7 @@ class BaseOrchestrator(object):
         self.crawler_cnt = 0
         self.crawler_latest_work_time = []
         self.parser_latest_work_time = []
+        self.run_info_retry = dict()
 
     def _init_crawler(self):
         app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -103,10 +105,20 @@ class BaseOrchestrator(object):
                 if isinstance(run_info, tuple) and len(run_info)==5:
                     #rsp_data = self.crawler.process_request(*run_info[1:])
                     self.timed_var_site[0] = run_info[1]
-                    rsp_data = timed_process_request(run_info)
-                    if isinstance(rsp_data, ReqResponse):
-                        rsp_data = rsp_data.text
-                    self.rsp_data_q.append((run_info, rsp_data))
+                    try:
+                        rsp_data = timed_process_request(run_info)
+                        if isinstance(rsp_data, ReqResponse):
+                            rsp_data = rsp_data.text
+                        self.rsp_data_q.append((run_info, rsp_data))
+                    except ConnectionError:
+                        hash_runinfo = (run_info[0],run_info[1],run_info[2],json.dumps(run_info[3]),run_info[4])
+                        if hash_runinfo not in self.run_info_retry:
+                            self.run_info_retry[hash_runinfo] = 0
+                        else:
+                            try_cnt = self.run_info_retry[hash_runinfo]
+                            self.run_info_retry[hash_runinfo] = try_cnt + 1
+                        if try_cnt<5:
+                            self.craw_info_q.append(run_info)
             else:
                 gevent.sleep(0)
         print '%s - %d is quiting' % (workername, workerid)
@@ -139,10 +151,11 @@ class BaseOrchestrator(object):
                 if self.tips_cb:
                     #self.tips_cb(run_info[0])
                     timed_process_tips(run_info)
-                ts = time.time()
-                if ts-self.current_ts>60:
-                    self.current_ts = ts
-                    self.record_time_elapsed()
+                if isdebug:
+                    ts = time.time()
+                    if ts-self.current_ts>60:
+                        self.current_ts = ts
+                        self.record_time_elapsed()
             else:
                 gevent.sleep(0)
         print '%s - %d is quiting' % (workername, workerid)
@@ -150,13 +163,18 @@ class BaseOrchestrator(object):
         #    outf.write( 'worker %s-<%d> quitting\n' % (workername, workerid) )
 
     def record_time_elapsed(self):
-        with open('timed_info_%s.txt' % (self.spidername), 'a+') as outf:
+        with open('%s_time_elapsed.log' % (self.spidername), 'a+') as outf:
             out_dict = copy.deepcopy(self.timed_var_dict)
             for kt, vt in self.timed_var_dict.iteritems():
                 for sitehttp, t in vt.iteritems():
                     out_dict[kt][sitehttp] = int(t)
             outf.write(json.dumps(out_dict))
             outf.write('\n')
+
+    def dump_failed_task(self):
+        if isinstance(self.run_info_retry,dict):
+            with open('%s_failed_task.log' % (self.spidername), 'a+') as outf:
+                outf.write(json.dumps(self.run_info_retry))
 
     def run_pipeline(self, isdebug=False):
         timed_var_dict = self.timed_var_dict
@@ -196,6 +214,7 @@ class BaseOrchestrator(object):
         #step4. wait for finishing
         gevent.joinall( threads )
         self.businessmodel.notify_model_info_end()
+        self.dump_failed_task()
 
     def run_pipeline_v0(self, isdebug=False):
         timed_var_dict = dict()
