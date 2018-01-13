@@ -66,6 +66,7 @@ class AdaptorSqlite(object):
             sql = "insert into %s (%s) values(%s)" % (tbname, sql_fields, sql_vals)
             cur.execute(sql)
             cur.close()
+            self.commit_database()
             #conn.commit()
             #conn.close()
 
