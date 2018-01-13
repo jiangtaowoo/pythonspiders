@@ -129,7 +129,7 @@ class GeneralCrawler(object):
             for enmae, einfo in locateinfo.iteritems():
                 if 'click' in einfo['action']:
                     only_one_click = elems[enmae]['click']
-                    break
+                    continue
                 for act in einfo['action']:
                     if enmae in payload:
                         elems[enmae][act](payload[enmae])
