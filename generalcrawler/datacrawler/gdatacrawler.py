@@ -39,6 +39,7 @@ class GeneralCrawler(object):
         self.session_used = True
         self.dtomgr = None
         self.spidername = spidername
+        self._cookie_updated = False
 
     def _is_cookie_file_available(self, cookies_file_path):
         if os.path.exists(cookies_file_path):
@@ -122,7 +123,7 @@ class GeneralCrawler(object):
                 elems[ename] = {'send_keys': e_obj.send_keys, 'clear': e_obj.clear, 'click': e_obj.click}
             except NoSuchElementException:
                 print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
-                raw_input('Please login manually, AFTER LOGIN SUCCESSFUL, press any key to continue!')
+                raw_input('Please operate manually, AFTER OPERATION SUCCESSFUL, press any key to continue!')
         # all element found, perform actions except click
         if len(elems)==len(locateinfo):
             only_one_click = None
@@ -137,13 +138,15 @@ class GeneralCrawler(object):
                         elems[enmae][act]()
             if only_one_click:
                 only_one_click()
-            raw_input('press any key IF LOGIN SUCCESSFUL, else please login manually first, then press any key!')
+            #raw_input('press any key IF LOGIN SUCCESSFUL, else please login manually first, then press any key!')
         #save cookies
-        all_cookies = dr.get_cookies()
-        cookies_dict = dict()
-        for s_cookie in all_cookies:
-            cookies_dict[s_cookie["name"]] = s_cookie["value"]
-        self._session.cookies = requests.utils.cookiejar_from_dict(cookies_dict)
+        if not self._cookie_updated:
+            all_cookies = dr.get_cookies()
+            cookies_dict = dict()
+            for s_cookie in all_cookies:
+                cookies_dict[s_cookie["name"]] = s_cookie["value"]
+            self._session.cookies = requests.utils.cookiejar_from_dict(cookies_dict)
+            self._cookie_updated = True
         #return page source
         pagedata = dr.page_source
         dr.quit()
@@ -252,5 +255,5 @@ class GeneralCrawler(object):
         siteinfo = self._get_siteinfo_from_sitename(sitename, sitehttp)
         if sleepinterval:
             time.sleep(sleepinterval)
-        funcmap = {'post': self._post_data, 'get': self._get_data}
+        funcmap = {'post': self._post_data, 'get': self._get_data, 'selenium': self._selenium_data}
         return funcmap[siteinfo['method']](siteinfo, now_data_maps)
