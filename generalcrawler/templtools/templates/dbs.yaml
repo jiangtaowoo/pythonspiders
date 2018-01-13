@@ -1,0 +1,5 @@
+# -*- coding: utf-8 -*-
+{%- for modname in JJ2_modinfos %}
+{{modname}}:
+  tablename: {{modname}}
+{%- endfor %}

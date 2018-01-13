@@ -103,6 +103,8 @@ if __name__=="__main__":
         generate_spider_template(env, input_datas, ['JJ2_sites'], 'tenants.yaml', outdict)
         generate_spider_template(env, input_datas, ['JJ2_sites'], 'http.yaml', outdict)
         generate_spider_template(env, input_datas, ['JJ2_sites', 'JJ2_modinfos'], 'dtomap.yaml', outdict, out_file_name='dtomap_.yaml')
+        generate_spider_template(env, input_datas, ['JJ2_sites', 'JJ2_modinfos'], 'dbs.yaml', outdict)
+        generate_spider_template(env, input_datas, ['JJ2_sites'], 'diyorch.py', outdict)
     elif len(argv)==3:
         script, spidername, dtomap = argv
         for pkg_name, pkg_info in cbinfos.iteritems():
