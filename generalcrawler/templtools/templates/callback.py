@@ -9,6 +9,7 @@ import copy
 
 class {{ CLS_NAME }}(object):
     def __init__(self):
+        self.sleepinterval = 0
         self.cur_spider_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         {%- for SITE_HTTP in JJ2_sitecbnames[CLS_NAME] %}
         self.sitename = '{{SITE_HTTP}}'
@@ -21,7 +22,7 @@ class {{ CLS_NAME }}(object):
         next_run_info = []
         tips = ''
         newdmaps = dict()
-        next_run_info.append((tips, self.sitename, 'data_http', newdmaps, 0))
+        next_run_info.append((tips, self.sitename, 'data_http', newdmaps, self.sleepinterval))
         return next_run_info
 
     def data_url_generator(self, data, dmaps):
@@ -30,7 +31,7 @@ class {{ CLS_NAME }}(object):
             param1 = param1 + 1
             dmaps['%PARAM%'] = param1
             tips = ''
-            return [(tips, self.sitename, 'data_http', dmaps, 0)]
+            return [(tips, self.sitename, 'data_http', dmaps, self.sleepinterval)]
         return None
 
     {%- for FUNC_NAME, FUNC_PARAM_LIST in CLS_INFO.items() %}

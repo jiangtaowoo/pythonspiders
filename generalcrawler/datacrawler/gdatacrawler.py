@@ -41,13 +41,13 @@ class GeneralCrawler(object):
         self.spidername = spidername
         self._cookie_updated = False
         self.browser = None
-        app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        av_agent_file = os.path.sep.join([app_base_dir, 'useragent.txt'])
-        if os.path.exists(av_agent_file):
-            with open(av_agent_file) as infile:
-                self.av_agents = []
-                for line in infile:
-                    self.av_agents.append(line.strip())
+        #app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        #av_agent_file = os.path.sep.join([app_base_dir, 'useragent.txt'])
+        #if os.path.exists(av_agent_file):
+        #    with open(av_agent_file) as infile:
+        #        self.av_agents = []
+        #        for line in infile:
+        #            self.av_agents.append(line.strip())
 
     def _is_cookie_file_available(self, cookies_file_path):
         if os.path.exists(cookies_file_path):

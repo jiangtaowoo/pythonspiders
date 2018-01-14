@@ -8,6 +8,7 @@ import copy
 
 class NDSCallback(object):
     def __init__(self):
+        self.sleepinterval = 5
         self.sitename = 'shop.nordstrom.com'
         self.cur_spider_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -75,7 +76,8 @@ class NDSCallback(object):
             newdmaps['%PAGEINDEX%'] = '1'
             newdmaps['%PRODUCT_URL%'] = self._calc_url_for_browser(newdmaps)
             tips = self._calc_cur_dmaps_tips(newdmaps)
-            next_run_info.append((tips, self.sitename, 'browser_http', newdmaps, 0))
+            #next_run_info.append((tips, self.sitename, 'browser_http', newdmaps, self.sleepinterval))
+            next_run_info.append((tips, self.sitename + '-nobrowser', 'data_http', newdmaps, self.sleepinterval))
             break
         return next_run_info
 
@@ -83,7 +85,7 @@ class NDSCallback(object):
         if data:
             self._update_dmaps_next_page(dmaps)
             tips = self._calc_cur_dmaps_tips(dmaps)
-            return [(tips, self.sitename, 'data_http', dmaps, 0)]
+            return [(tips, self.sitename + '-nobrowser', 'data_http', dmaps, self.sleepinterval)]
         return None
 
     def browser_url_generator(self, data, dmaps):
@@ -96,15 +98,16 @@ class NDSCallback(object):
                     #has next page
                     self._update_dmaps_next_page(dmaps)
                     tips = self._calc_cur_dmaps_tips(dmaps)
-                    return [(tips, self.sitename, 'data_http', dmaps, 0)]
+                    return [(tips, self.sitename, 'browser_http', dmaps, self.sleepinterval)]
         return None
 
 
     def get_prodid_fromhref(self, dmaps, produrl_short):
         #href="/s/rebecca-minkoff-julian-nylon-backpack/4882828?origin=category-p
-        ss = produrl_short.split('/')
-        if len(ss)>3:
-            return ss[3].split('?')[0]
+        if produrl_short:
+            ss = produrl_short.split('/')
+            if len(ss)>3:
+                return ss[3].split('?')[0]
         return ''
 
     def get_join_color(self, dmaps, prodcolor_info):
@@ -129,7 +132,7 @@ class NDSCallback(object):
             newdmaps['%FILENAME%'] = img_file_name
             newdmaps['%IMG_URL%'] = prodimgurl
             dir_chain = os.path.sep.join(['IMAGES', newdmaps['%CATAL1%'], newdmaps['%CATAL2%'], newdmaps['%CATAL3%']])
-            self._recursive_makedirs(dir_chain)
+            #self._recursive_makedirs(dir_chain)
             img_file_path = os.path.sep.join([self.cur_spider_dir, dir_chain, img_file_name])
             return img_file_path
         return None
@@ -137,5 +140,7 @@ class NDSCallback(object):
     def get_prod_url(self, dmaps, produrl_short):
         #return full url
         #short_url = '/s/herschel-supply-co-sydney-backpack/3579893'
-        prefixs = 'https://shop.nordstrom.com'
-        return prefixs + produrl_short
+        if produrl_short:
+            prefixs = 'https://shop.nordstrom.com'
+            return prefixs + produrl_short
+        return ''

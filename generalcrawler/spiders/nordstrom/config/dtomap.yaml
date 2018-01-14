@@ -35,7 +35,7 @@ shop.nordstrom.com:
     catal2: ['get_dmap_param', '%CATAL2%']
     catal3: ['get_dmap_param', '%CATAL3%']
     produrl: ['get_prod_url', produrl_short]
-shop.nordstrom.com-backup:
+shop.nordstrom.com-nobrowser:
   datamodule: ['ProductModel']
   callback:
     classinfo:
