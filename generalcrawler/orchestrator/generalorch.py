@@ -10,12 +10,11 @@ from datacrawler.gdatacrawler import GeneralCrawler
 from dto.dtomanager import DTOManager
 from persistadaptor.baseadaptor import AdaptorSqlite
 from models.productmodel import ModelBase
-import gevent
-#from gevent import sleep as gsleep
-from gevent.lock import BoundedSemaphore
+#import gevent
+#from gevent.lock import BoundedSemaphore
 #from gevent.queue import Queue
-from gevent import monkey
-monkey.patch_all()
+#from gevent import monkey
+#monkey.patch_all()
 
 def timeit_by_dict(store_dict, seg1, seg2):
     def timeit(method_to_be_timed):
@@ -57,6 +56,7 @@ class BaseOrchestrator(object):
         app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         basepath = os.path.sep.join([app_base_dir,'spiders',self.spidername,'config'])
         self.crawler = GeneralCrawler(self.spidername)
+        self.crawler.session_used = False
         self.businessmodel = ModelBase()
         self.sqliteadaptor = AdaptorSqlite(spidername=self.spidername)
         self.crawler.load_http_config(basepath + os.path.sep + 'http.yaml')
@@ -183,6 +183,13 @@ class BaseOrchestrator(object):
                 #outf.write(json.dumps(self.run_info_retry))
 
     def run_pipeline(self, isdebug=False):
+        self.run_pipeline_sthread(isdebug)
+        #if isdebug:
+        #    self.run_pipeline_sthread(isdebug)
+        #else:
+        #    self.run_pipeline_gevent()
+
+    def run_pipeline_gevent(self, isdebug=False):
         timed_var_dict = self.timed_var_dict
         timed_var_site = self.timed_var_site
         @timeit_by_dict(timed_var_dict, 'WEB_REQUEST', timed_var_site)
@@ -222,7 +229,7 @@ class BaseOrchestrator(object):
         self.businessmodel.notify_model_info_end()
         self.dump_failed_task()
 
-    def run_pipeline_v0(self, isdebug=False):
+    def run_pipeline_sthread(self, isdebug=False):
         timed_var_dict = self.timed_var_dict
         timed_var_site = self.timed_var_site
         @timeit_by_dict(timed_var_dict, 'WEB_REQUEST', timed_var_site)
