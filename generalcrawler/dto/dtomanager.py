@@ -76,7 +76,8 @@ class DTOManager(object):
                 for field_name, calc_info in col_calcs.iteritems():
                     cb_col_func = None
                     params = []
-                    params.append(self._cb_objs[sitename])
+                    params.append(self._cb_objs[sitename])  #1st fix param: callback class self obj  func1(self, dmaps, diyp1, diyp2, ...)
+                    params.append(dmaps)                    #2nd fix param: dmaps
                     for idx, x in enumerate(calc_info):
                         if idx == 0:
                             cb_col_func = self._cb_funcs[sitename][x]
@@ -84,10 +85,11 @@ class DTOManager(object):
                             if x in data_row:              # 1st prior: column data by column name
                                 params.append(data_row[x])
                             else:
-                                if x in dmaps:               # 2nd prior: dmaps data by key
-                                    params.append(dmaps[x])
-                                else:
-                                    params.append(x)         # 3rd prior: raw data
+                                params.append(x)
+                                #if x in dmaps:               # 2nd prior: dmaps data by key
+                                #    params.append(dmaps[x])
+                                #else:
+                                #    params.append(x)         # 3rd prior: raw data
                     if cb_col_func:
                         data_row[field_name] = cb_col_func(*params)
         return data
@@ -110,7 +112,7 @@ class DTOManager(object):
         cb_funcname = self._dto_cfgs[sitename]['callback']['httpinfo'][sitehttp]['callbackfunc']
         cb_func = self._cb_funcs[sitename][cb_funcname] if cb_funcname else None
         if cb_func:
-            data = cb_func(cb_site_obj, data)
+            data = cb_func(cb_site_obj, data, dmaps)
         #step 3. process data in general style for json or html
         datatype = self._http_data_types[sitename][sitehttp]
         if data:
