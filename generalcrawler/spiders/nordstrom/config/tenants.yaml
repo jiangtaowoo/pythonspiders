@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+RUN:
+  Nordstrom: ['shop.nordstrom.com']
+NORUN:
+  Nordstrom-Beachbag: ['shop.nordstrom.com-1']
+  Nordstrom-Backbag: ['shop.nordstrom.com-2']
+  Nordstrom-AllBeautiy: ['shop.nordstrom.com-x']

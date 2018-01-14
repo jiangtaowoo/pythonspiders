@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+shop.nordstrom.com:
+  datamodule: ['ProductModel']
+  callback:
+    classinfo:
+      modulename: callbacknds
+      classname: NDSCallback
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: json
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+      browser_http:
+        data_type: html
+        callbackfunc: null
+        generatorfunc: browser_url_generator
+  row_def:
+    path: '//div[contains(@class,"npr-16j9q")]//div[contains(@class,"npr-1jF5l")]//article[contains(@class,"npr-product-module")]'
+  col_def:
+    prodname: './p[@class="npr-3J58X"]/a[@class="product-href"]/span/text()'
+    prodpricemin: './div[contains(@class,"npr-1GpgL")]//p[@class="npr-2it8C"]/span[@class="npr-3DFlx"]'
+    prodpricemincut: './div[contains(@class,"npr-1GpgL")]//p[@class="npr-2yZen"]/span[@class="npr-3DFlx"]'
+    prodimgurl: './a[@class="npr-3WgCQ"]/img/@src'
+    prodcolor_info: './/div[@class="swatches-inner"]//li//a/text()'
+    produrl_short: './p[@class="npr-3J58X"]/a[@class="product-href"]/@href'
+  col_calc:
+    prodid: ['get_prodid_fromhref', 'produrl_short']
+    prodcolor: ['get_join_color', 'prodcolor_info']
+    sitename: ['get_dmap_param', '%SITENAME%']
+    catal1: ['get_dmap_param', '%CATAL1%']
+    catal2: ['get_dmap_param', '%CATAL2%']
+    catal3: ['get_dmap_param', '%CATAL3%']
+    produrl: ['get_prod_url', produrl_short]
+shop.nordstrom.com-backup:
+  datamodule: ['ProductModel']
+  callback:
+    classinfo:
+      modulename: callbacknds
+      classname: NDSCallback
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: json
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+      browser_http:
+        data_type: html
+        callbackfunc: null
+        generatorfunc: browser_url_generator
+  row_def:
+    path: '/D[ProductData]/D[~$id]'
+  col_def:
+    prodbrandid: '/D[Brand]/D[Id]'
+    prodbrandname: '/D[Brand]/D[Label]'
+    prodid: '/D[Id]'
+    prodname: '/D[Title]'
+    prodmodel: '/D[StyleNumber]'
+    productspec: ''
+    prodpricemin: '/D[Prices]/L[0]/D[MinItemPrice]'
+    prodpricemax: '/D[Prices]/L[0]/D[MaxItemPrice]'
+    prodpricemincut: '/D[Prices]/L[-1]/D[MinItemPrice]'
+    prodpricemaxcut: '/D[Prices]/L[-1]/D[MaxItemPrice]'
+    prodimgurl: '/D[Media]/L[0]/D[Url]'
+    prodreviewcnt: '/D[ReviewSummary]/D[ReviewsCount]'
+    prodreviewrating: '/D[ReviewSummary]/D[AverageRating]'
+    prodcolor_info: '/D[Colors]/L[:]/D[Name]'
+    produrl_short: '/D[ProductPageUrl]'
+  col_calc:
+    prodcolor: ['get_join_color', 'prodcolor_info']
+    sitename: ['get_dmap_param', '%SITENAME%']
+    catal1: ['get_dmap_param', '%CATAL1%']
+    catal2: ['get_dmap_param', '%CATAL2%']
+    catal3: ['get_dmap_param', '%CATAL3%']
+    prodimgfile: ['get_img_url', prodid, prodimgurl]
+    produrl: ['get_prod_url', produrl_short]

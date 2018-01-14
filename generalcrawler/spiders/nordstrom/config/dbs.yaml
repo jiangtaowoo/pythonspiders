@@ -1,0 +1,3 @@
+# -*- coding: utf-8 -*-
+ProductModel:
+  tablename: prod_info
