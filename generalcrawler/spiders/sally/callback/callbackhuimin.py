@@ -8,19 +8,11 @@ class HuiminCallback(BaseCallback):
         self.sitename = 'pcshop.huimin100.cn'
         self.cate_id_name_dict = {'17': u'果汁饮料', '18': u'碳酸饮料', '19': u'茶饮料', '20': u'水功能饮料'}
 
-    def convert_data(self, data):
+    def convert_data(self, data, dmaps):
         data = json.loads(data)
         div_start = data.find('<div')
         div_end = data.rfind('</div>') + len('</div>')
         return data[div_start:div_end]
-
-    def calc_product_url(self, productid):
-        return 'https://pcshop.huimin100.cn/index.php/home/goods/getsingleitemdetail/uniqueId/' + str(productid)
-
-    def calc_cate_name(self, cate_id):
-        if cate_id in self.cate_id_name_dict:
-            return self.cate_id_name_dict[cate_id]
-        return ''
 
     def login_url_generator(self, data, dmaps):
         #return information for data_http crawler
@@ -42,3 +34,13 @@ class HuiminCallback(BaseCallback):
                 tips = ''.join([self.cate_id_name_dict[cate_id], ' page ', str(pageidx)])
             return [(tips, self.sitename, 'data_http', dmaps, 0)]
         return None
+
+    def calc_product_url(self, dmaps, productid):
+        return 'https://pcshop.huimin100.cn/index.php/home/goods/getsingleitemdetail/uniqueId/' + str(productid)
+
+    def calc_cate_name(self, dmaps, mapkey_cate_id):
+        if mapkey_cate_id in dmaps:
+            cate_id = dmaps[mapkey_cate_id]
+            if cate_id in self.cate_id_name_dict:
+                return self.cate_id_name_dict[cate_id]
+        return ''

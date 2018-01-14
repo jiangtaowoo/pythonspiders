@@ -19,22 +19,22 @@ class BaseCallback(object):
             self._brand_data.sort(key=lambda x: -len(x))
             self._taste_data.sort(key=lambda x: -len(x))
 
-    def map_today(self):
+    def map_today(self, dmaps):
         return str(datetime.date.today())
 
-    def map_product_brand(self, productname):
+    def map_product_brand(self, dmaps, productname):
         for b in self._brand_data:
             if b in productname:
                 return b
         return ''
 
-    def map_product_taste(self, productname):
+    def map_product_taste(self, dmaps, productname):
         for tas in self._taste_data:
             if tas in productname:
                 return tas
         return ''
 
-    def map_product_spec(self, productsize, idx):
+    def map_product_spec(self, dmaps, productsize, idx):
         if productsize:
             details = productsize.replace(u'×','*').split('*')
             idx = int(idx)

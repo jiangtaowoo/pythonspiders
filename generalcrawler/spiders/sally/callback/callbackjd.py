@@ -8,11 +8,8 @@ class JDCallback(BaseCallback):
         BaseCallback.__init__(self)
         self.sitename = 'zgb.m.jd.com'
 
-    def convert_data(self, data):
+    def convert_data(self, data, dmaps):
         return json.loads(data[19:-1])
-
-    def calc_product_url(self, productid):
-        return 'http://zgb.m.jd.com/detail.html?id=' + str(productid)
 
     def login_url_generator(self, data, dmaps):
         #return information for data_http crawler
@@ -27,3 +24,6 @@ class JDCallback(BaseCallback):
             dmaps['%TIMESTAMP%'] = str(int(time.time()*1000))
             return [('page ' + str(pageidx), self.sitename, 'data_http', dmaps, 0)]
         return None
+
+    def calc_product_url(self, dmaps, productid):
+        return 'http://zgb.m.jd.com/detail.html?id=' + str(productid)

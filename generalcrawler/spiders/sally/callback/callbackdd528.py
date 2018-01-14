@@ -7,11 +7,8 @@ class Dd528Callback(BaseCallback):
         BaseCallback.__init__(self)
         self.sitename = 'www.dd528.com'
 
-    def convert_data(self, data):
+    def convert_data(self, data, dmaps):
         return json.loads(data)
-
-    def calc_product_url(self, productid):
-        return 'http://www.dd528.com/detail?gid=' + str(productid)
 
     def login_url_generator(self, data, dmaps):
         #return information for data_http crawler
@@ -27,3 +24,6 @@ class Dd528Callback(BaseCallback):
             dmaps['%PAGEOFFSET%'] = str(pageoff)
             return [('page ' + str(pageoff/100+1), self.sitename, 'data_http', dmaps, 0)]
         return None
+
+    def calc_product_url(self, dmaps, productid):
+        return 'http://www.dd528.com/detail?gid=' + str(productid)
