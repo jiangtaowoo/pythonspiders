@@ -84,14 +84,14 @@ class BaseOrchestrator(object):
     def crawler_wait_toolong(self):
         ts = time.time()
         for i in xrange(0, self.crawler_cnt):
-            if ts-self.crawler_latest_work_time[i] < 10:
+            if ts-self.crawler_latest_work_time[i] < 30:
                 return False
         return True
 
     def parser_wait_toolong(self):
         ts = time.time()
         for i in xrange(0, self.parser_cnt):
-            if ts-self.parser_latest_work_time[i] < 10:
+            if ts-self.parser_latest_work_time[i] < 30:
                 return False
         return True
 
@@ -177,7 +177,8 @@ class BaseOrchestrator(object):
         if isinstance(self.run_info_retry,dict):
             with open('%s_failed_task.log' % (self.spidername), 'a+') as outf:
                 for hash_runinfo, try_cnt in self.run_info_retry.iteritems():
-                    outf.write(try_cnt)
+                    outf.write(str(try_cnt))
+                    outf.write('\t')
                     outf.write('\t'.join(map(unicode,list(hash_runinfo))))
                     outf.write('\n')
                 #outf.write(json.dumps(self.run_info_retry))
