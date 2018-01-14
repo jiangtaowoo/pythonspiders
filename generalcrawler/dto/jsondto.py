@@ -50,6 +50,8 @@ class JsonDTO(BaseDTO):
         # /D[~key1]/L[-1]
         # /D[key]/L[:]
         steps = [x for x in jpath.split('/') if x]
+        if not steps:
+            return None
         ret_data = data
         for stepinfo in steps:
             dl_type, dl_key = self._parse_jpath(stepinfo)
