@@ -50,7 +50,7 @@ def main(spidername='', excel_file_name=None):
             else:
                 tname = 'NICKNAME'
             addinfo = {'sitename': sitename, 'tenantname': tname, 'tenantalias': talias}
-            orch.regist_addinfo_callback(functools.partial(addinfo_data, **addinfo))
+            #orch.regist_addinfo_callback(functools.partial(addinfo_data, **addinfo))
             orch.regist_tips_callback(functools.partial(print_tips, tenantalias=talias))
             orch.setup_entry_info(tenant_item)
             orch.run_pipeline()
