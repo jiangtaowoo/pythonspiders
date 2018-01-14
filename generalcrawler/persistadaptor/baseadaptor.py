@@ -25,10 +25,10 @@ class AdaptorSqlite(object):
 
     def commit_database(self):
         if self.conn:
-            ts = int(time.time())
-            if ts-self.cur_ts > 60:
-                self.cur_ts = ts
-                self.conn.commit()
+            #ts = int(time.time())
+            #if ts-self.cur_ts > 60:
+                #self.cur_ts = ts
+            self.conn.commit()
 
     def _create_table(self, tbname, pk, fieldsname):
         sql_fields = ','.join(fieldsname)
@@ -54,9 +54,9 @@ class AdaptorSqlite(object):
             for k, v in kwargs.iteritems():
                 sql_fields.append(str(k))
                 if isinstance(v,unicode):
-                    sql_vals.append("'" + v.encode('utf-8') + "'")
+                    sql_vals.append('"' + v.encode('utf-8').replace('"',"'") + '"')
                 else:
-                    sql_vals.append("'" + str(v) + "'")
+                    sql_vals.append('"' + str(v).replace('"',"'") + '"')
             sql_fields = ','.join(sql_fields)
             sql_vals = ','.join(sql_vals)
             if not self.conn:
@@ -66,7 +66,10 @@ class AdaptorSqlite(object):
             sql = "insert into %s (%s) values(%s)" % (tbname, sql_fields, sql_vals)
             cur.execute(sql)
             cur.close()
-            self.commit_database()
+            ts = int(time.time())
+            if ts-self.cur_ts > 60:
+                self.cur_ts = ts
+                self.commit_database()
             #conn.commit()
             #conn.close()
 
