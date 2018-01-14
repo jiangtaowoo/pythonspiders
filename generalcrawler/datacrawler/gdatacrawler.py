@@ -40,6 +40,14 @@ class GeneralCrawler(object):
         self.dtomgr = None
         self.spidername = spidername
         self._cookie_updated = False
+        self.browser = None
+        app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        av_agent_file = os.path.sep.join([app_base_dir, 'useragent.txt'])
+        if os.path.exists(av_agent_file):
+            with open(av_agent_file) as infile:
+                self.av_agents = []
+                for line in infile:
+                    self.av_agents.append(line.strip())
 
     def _is_cookie_file_available(self, cookies_file_path):
         if os.path.exists(cookies_file_path):
@@ -100,11 +108,15 @@ class GeneralCrawler(object):
         proxies = None
         if 'proxy' in siteinfo:
             proxies = siteinfo['proxy']
-        dr = None
-        if proxies:
-            dr = webdriver.Firefox(firefox_profile=self._calc_proxy_profile(proxies, 'firefox'))
+        if self.browser is None:
+            #dr = None
+            if proxies:
+                self.browser = webdriver.Firefox(firefox_profile=self._calc_proxy_profile(proxies, 'firefox'))
+            else:
+                self.browser = webdriver.Firefox()
         else:
-            dr = webdriver.Firefox()
+            if len(self.browser.window_handles)>0:
+                self.browser.switch_to.window(self.browser.window_handles[0])
         #f_e_by_id = dr.find_element_by_id
         #f_e_by_name = dr.find_element_by_name
         #f_e_by_xpath = dr.find_element_by_xpath
@@ -112,35 +124,40 @@ class GeneralCrawler(object):
         url = siteinfo['url'] if 'url' in siteinfo else ''
         payload = siteinfo['data'] if 'data' in siteinfo else ''
         locateinfo = siteinfo['locate'] if 'locate' in siteinfo else ''
+        url = self._replace_keymapping(url, now_data_maps)
         self._replace_keymapping(payload, now_data_maps)
-        dr.get(url)
+        #dr.get(url)
+        self.browser.get(url)
         # locate element
-        elems = dict()
-        for ename, einfo in locateinfo.iteritems():
-            try:
-                e_obj = WebDriverWait(dr, 60).until(html_element_exists(einfo['loctype'], einfo['keyword']))
-                #e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
-                elems[ename] = {'send_keys': e_obj.send_keys, 'clear': e_obj.clear, 'click': e_obj.click}
-            except NoSuchElementException:
-                print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
-                raw_input('Please operate manually, AFTER OPERATION SUCCESSFUL, press any key to continue!')
-        # all element found, perform actions except click
-        if len(elems)==len(locateinfo):
-            only_one_click = None
-            for enmae, einfo in locateinfo.iteritems():
-                if 'click' in einfo['action']:
-                    only_one_click = elems[enmae]['click']
-                    continue
-                for act in einfo['action']:
-                    if enmae in payload:
-                        elems[enmae][act](payload[enmae])
-                    else:
-                        elems[enmae][act]()
-            if only_one_click:
-                only_one_click()
-            #raw_input('press any key IF LOGIN SUCCESSFUL, else please login manually first, then press any key!')
+        if locateinfo:
+            dr = self.browser
+            elems = dict()
+            for ename, einfo in locateinfo.iteritems():
+                try:
+                    e_obj = WebDriverWait(dr, 60).until(html_element_exists(einfo['loctype'], einfo['keyword']))
+                    #e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
+                    elems[ename] = {'send_keys': e_obj.send_keys, 'clear': e_obj.clear, 'click': e_obj.click}
+                except NoSuchElementException:
+                    print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
+                    raw_input('Please operate manually, AFTER OPERATION SUCCESSFUL, press any key to continue!')
+            # all element found, perform actions except click
+            if len(elems)==len(locateinfo):
+                only_one_click = None
+                for enmae, einfo in locateinfo.iteritems():
+                    if 'click' in einfo['action']:
+                        only_one_click = elems[enmae]['click']
+                        continue
+                    for act in einfo['action']:
+                        if enmae in payload:
+                            elems[enmae][act](payload[enmae])
+                        else:
+                            elems[enmae][act]()
+                if only_one_click:
+                    only_one_click()
+                #raw_input('press any key IF LOGIN SUCCESSFUL, else please login manually first, then press any key!')
         #save cookies
         if not self._cookie_updated:
+            dr = self.browser
             all_cookies = dr.get_cookies()
             cookies_dict = dict()
             for s_cookie in all_cookies:
@@ -148,8 +165,9 @@ class GeneralCrawler(object):
             self._session.cookies = requests.utils.cookiejar_from_dict(cookies_dict)
             self._cookie_updated = True
         #return page source
-        pagedata = dr.page_source
-        dr.quit()
+        #pagedata = dr.page_source
+        pagedata = self.browser.page_source
+        #dr.quit()
         return pagedata
 
     def _post_data(self, siteinfo, now_data_maps):
@@ -181,6 +199,8 @@ class GeneralCrawler(object):
             return None
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
+        #from random import choice
+        #headers['User-Agent'] = choice(self.av_agents)
         payload = siteinfo['data'] if 'data' in siteinfo else ''
         proxies = None
         if 'proxy' in siteinfo:
