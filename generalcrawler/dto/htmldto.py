@@ -14,6 +14,8 @@ class HtmlDTO(BaseDTO):
         # '/D@data/L./D@specification'
         sitedto = self._get_sitedto_from_sitename(sitename)
         row_xpath = sitedto['row_def']['path']
+        if not row_xpath:
+            return None
         col_xpaths = sitedto['col_def']
         xml_data = lxml.html.fromstring(data)
         row_divs = xml_data.xpath(row_xpath)
@@ -31,6 +33,8 @@ class HtmlDTO(BaseDTO):
                                 data_row[field_name] = '|'.join(filter(len,map(self._stringify_node,retnode)))
                             else:
                                 data_row[field_name] = '|'.join(filter(len,map(self._stringify_unicode,retnode)))
+                        else:
+                            data_row[field_name] =''
                     else:
                         data_row[field_name] = str(retnode)
             data_rowset.append(data_row)
