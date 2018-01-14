@@ -9,9 +9,13 @@ import copy
 
 class {{ CLS_NAME }}(object):
     def __init__(self):
+        self.cur_spider_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         {%- for SITE_HTTP in JJ2_sitecbnames[CLS_NAME] %}
         self.sitename = '{{SITE_HTTP}}'
         {%- endfor %}
+
+    def convert_data(self, data, dmaps):
+        return data
 
     def init_url_generator(self, data, dmaps):
         next_run_info = []
@@ -31,7 +35,7 @@ class {{ CLS_NAME }}(object):
 
     {%- for FUNC_NAME, FUNC_PARAM_LIST in CLS_INFO.items() %}
 
-    def {{ FUNC_NAME }}(self{%- for PARAM_NAME in FUNC_PARAM_LIST %}, {{PARAM_NAME}} {%- endfor %}):
+    def {{ FUNC_NAME }}(self, dmaps{%- for PARAM_NAME in FUNC_PARAM_LIST %}, {{PARAM_NAME}} {%- endfor %}):
         return None
     {%- endfor %}
 {%- endfor %}

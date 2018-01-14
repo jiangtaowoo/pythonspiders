@@ -1,9 +1,14 @@
 ProductModel:
-  PK: ['productid']
+  PK: ['sitename', 'cataname', 'prodid']
   cols:
-    productid: 1
-    productbrand: 0
-    productname: 0
-    productcolor: 0
-    productprice: 0
-    productpricecut: 0
+    sitename: 1
+    cataname: 1
+    subcataname: 0
+    prodid: 1
+    prodbrand: 0
+    prodname: 0
+    prodmodel: 0
+    productspec: 0
+    prodcolor: 0
+    prodprice: 0
+    prodpricecut: 0

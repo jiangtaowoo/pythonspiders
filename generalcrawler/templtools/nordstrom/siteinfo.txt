@@ -1,2 +1,1 @@
 NordStrom|shop.nordstrom.com|proxy|callbacknds|NDSCallback|ProductModel
-Amazon|www.amazon.com||||
