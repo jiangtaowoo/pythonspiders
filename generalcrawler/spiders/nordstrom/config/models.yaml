@@ -21,3 +21,9 @@ ProductModel:
     prodimgfile: 0
     prodreviewcnt: 0
     prodreviewrating: 0
+ProductAddModel:
+  PK: ['prodid']
+  cols:
+    prodid: 1
+    productspec: 0
+    productspecprice: 0

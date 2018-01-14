@@ -8,9 +8,10 @@ import copy
 
 class NDSCallback(object):
     def __init__(self):
-        self.sleepinterval = 5
+        self.sleepinterval = 1
         self.sitename = 'shop.nordstrom.com'
         self.cur_spider_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.run_info_buffer = []
 
     def _recursive_makedirs(self, dir_chain):
         #create sub dir inside current spider dir
@@ -57,6 +58,50 @@ class NDSCallback(object):
         return json.loads(data)
         #except:
 
+    def download_img_content(self, data, dmaps):
+        #data = rsp.content
+        img_file_path = os.path.sep.join([self.cur_spider_dir, 'IMAGES', dmaps['%PRODUCTID%']+dmaps['%FILEEXT%']])
+        with open(img_file_path, 'wb') as outf:
+            outf.write(data)
+        return None
+
+    def init_img_url_generator(self, data, dmaps):
+        #read from txt
+        idurl_file_path = os.path.sep.join([self.cur_spider_dir, 'config', 'prod_id_img.txt'])
+        prodinfo = []
+        with open(idurl_file_path) as infile:
+            for line in infile:
+                proditem = line.strip().split('|')
+                prodinfo.append(proditem)
+        next_run_info = []
+        for proditem in prodinfo:
+            newdmaps = dict()
+            newdmaps['%PRODUCTID%'] = proditem[0]
+            newdmaps['%IMG_URL%'] = proditem[1]
+            newdmaps['%FILEEXT%'] = '.'+proditem[1].split('.')[-1]
+            tips = ' productid %s ' % (proditem[0])
+            next_run_info.append((tips, self.sitename+'-add', 'img_http', newdmaps, self.sleepinterval))
+        print len(next_run_info)
+        return next_run_info
+
+    def init_prod_url_generator(self, data, dmaps):
+        #read from txt
+        idurl_file_path = os.path.sep.join([self.cur_spider_dir, 'config', 'prod_id_url.txt'])
+        prodinfo = []
+        with open(idurl_file_path) as infile:
+            for line in infile:
+                proditem = line.strip().split('|')
+                prodinfo.append(proditem)
+        next_run_info = []
+        for proditem in prodinfo:
+            newdmaps = dict()
+            newdmaps['%PRODUCTID%'] = proditem[0]
+            newdmaps['%PRODUCT_URL%'] = proditem[1]
+            tips = ' productid %s ' % (proditem[0])
+            next_run_info.append((tips, self.sitename+'-add', 'prod_http', newdmaps, self.sleepinterval))
+        print len(next_run_info)
+        return next_run_info
+
     def init_url_generator(self, data, dmaps):
         cata_file_path = os.path.sep.join([self.cur_spider_dir, 'config', 'catalist.txt'])
         catal = []
@@ -65,6 +110,7 @@ class NDSCallback(object):
                 cataline = line.strip().split('|')
                 catal.append(cataline)
         next_run_info = []
+        self.run_info_buffer = []
         for cataline in catal:
             newdmaps = dict()
             newdmaps['%SITENAME%'] = 'NordStrom'
@@ -77,8 +123,9 @@ class NDSCallback(object):
             newdmaps['%PRODUCT_URL%'] = self._calc_url_for_browser(newdmaps)
             tips = self._calc_cur_dmaps_tips(newdmaps)
             #next_run_info.append((tips, self.sitename, 'browser_http', newdmaps, self.sleepinterval))
-            next_run_info.append((tips, self.sitename + '-nobrowser', 'data_http', newdmaps, self.sleepinterval))
-            break
+            self.run_info_buffer.append((tips, self.sitename + '-nobrowser', 'data_http', newdmaps, self.sleepinterval))
+        next_run_info = self.run_info_buffer
+        #del self.run_info_buffer[0]
         return next_run_info
 
     def data_url_generator(self, data, dmaps):
@@ -86,6 +133,10 @@ class NDSCallback(object):
             self._update_dmaps_next_page(dmaps)
             tips = self._calc_cur_dmaps_tips(dmaps)
             return [(tips, self.sitename + '-nobrowser', 'data_http', dmaps, self.sleepinterval)]
+        #if len(self.run_info_buffer)>0:
+        #    next_run_info = self.run_info_buffer[0:1]
+        #    del self.run_info_buffer[0]
+        #    return next_run_info
         return None
 
     def browser_url_generator(self, data, dmaps):
@@ -144,3 +195,19 @@ class NDSCallback(object):
             prefixs = 'https://shop.nordstrom.com'
             return prefixs + produrl_short
         return ''
+
+    def join_prod_details(self, dmaps, productdetailc1_list):
+        print productdetailc1_list
+        if isinstance(productdetailc1_list, list):
+            nl = map(lambda x: x.encode('utf-8') if isinstance(x,unicode) else str(x), productdetailc1_list)
+            return '\n'.join(nl)
+        elif isinstance(productdetailc1_list, str) or isinstance(productdetailc1_list, unicode):
+            return productdetailc1_list.replace('|','\n')
+        return productdetailc1_list
+
+    def get_prod_spec_price(self, dmaps, productspec_price_orderwrong):
+        if isinstance(productspec_price_orderwrong, list):
+            return '|'.join(reversed(productspec_price_orderwrong))
+        elif isinstance(productspec_price_orderwrong, str) or isinstance(productspec_price_orderwrong, unicode):
+            return '|'.join(reversed(productspec_price_orderwrong.split('|')))
+        return productspec_price_orderwrong
