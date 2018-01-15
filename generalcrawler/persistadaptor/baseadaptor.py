@@ -129,10 +129,13 @@ class AdaptorSqlite(object):
             load_fail_ret = True
         if not load_fail_ret:
             sql_col = ', '.join(sql_col)
-            for fname, fval in kwargs.iteritems():
-                sql_cond.append(fname + '="' + fval + '"')
-            sql_cond = ' and '.join(sql_cond)
-            sql = 'select ' + sql_col + ' from ' + tablename + ' where ' + sql_cond
+            if kwargs:
+                for fname, fval in kwargs.iteritems():
+                    sql_cond.append(fname + '="' + fval + '"')
+                sql_cond = ' and '.join(sql_cond)
+                sql = 'select ' + sql_col + ' from ' + tablename + ' where ' + sql_cond
+            else:
+                sql = 'select ' + sql_col + ' from ' + tablename
             res = cur.execute(sql)
             data_set = [[x for x in row] for row in res]
             if data_set:
