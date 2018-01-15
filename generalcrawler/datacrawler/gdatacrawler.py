@@ -6,6 +6,7 @@ import time
 import datetime
 import yaml
 import requests
+from requests.models import Response as ReqResponse
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
@@ -267,6 +268,15 @@ class GeneralCrawler(object):
         self.dtomgr = dtomgr
 
     def exec_callback(self, data, run_info):
+        siteinfo = self._get_siteinfo_from_sitename(run_info[1], run_info[2])
+        if isinstance(data, ReqResponse):
+            if 'datatype' in siteinfo:
+                if siteinfo['datatype']=='content':
+                    data = data.content
+                else:
+                    data = data.text
+            else:
+                data = data.text
         return self.dtomgr.exec_callback(data, run_info)
 
     def process_request(self, sitename, sitehttp, now_data_maps, sleepinterval=0):
