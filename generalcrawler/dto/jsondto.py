@@ -14,14 +14,25 @@ class JsonDTO(BaseDTO):
     def _parse_dict_data(self, data, dl_type, dl_key):
         ret_data = None
         if dl_type == 'D' and isinstance(data, dict):
-            if dl_key[0] == '~':
-                exclude_k = dl_key[1:]
-                ret_data = dict()
-                for kk, vv in data.iteritems():
-                    if exclude_k not in kk:
-                        ret_data[kk] = vv
+            if '?' in dl_key:
+                #condition judgement   /D[book?(@property=xxx])]
+                cond_jpath = dl_key.split('?')
+                cond_list = cond_jpath[1][2:-1].split('=')
+                if cond_jpath[0] in data:
+                    data_tobe_filter = data[cond_jpath[0]]
+                    if cond_list[0] in data_tobe_filter:
+                        if cond_list[1] == data_tobe_filter[cond_list[0]]:
+                            return data_tobe_filter
+                return None
             else:
-                ret_data = data[dl_key] if dl_key in data else None
+                if dl_key[0] == '~':
+                    exclude_k = dl_key[1:]
+                    ret_data = dict()
+                    for kk, vv in data.iteritems():
+                        if exclude_k not in kk:
+                            ret_data[kk] = vv
+                else:
+                    ret_data = data[dl_key] if dl_key in data else None
         return ret_data
 
     def _parse_list_data(self, data, dl_type, dl_key):
@@ -40,9 +51,20 @@ class JsonDTO(BaseDTO):
                         end_idx = len(data)
                     ret_data = data[start_idx:end_idx]
             else:
-                single_idx = int(dl_key)
-                if single_idx>=-len(data) and single_idx<len(data):
-                    ret_data = data[single_idx]
+                if '?' in dl_key:
+                    #condition judgement   /L[5?(@property=xxx])]
+                    cond_jpath = dl_key.split('?')
+                    cond_list = cond_jpath[1][2:-1].split('=')
+                    if cond_jpath[0] in data:
+                        data_tobe_filter = data[int(cond_jpath[0])]
+                        if cond_list[0] in data_tobe_filter:
+                            if cond_list[1] == data_tobe_filter[cond_list[0]]:
+                                return data_tobe_filter
+                    return None
+                else:
+                    single_idx = int(dl_key)
+                    if single_idx>=-len(data) and single_idx<len(data):
+                        ret_data = data[single_idx]
         return ret_data
 
     def _get_jpath_data(self, data, jpath):
