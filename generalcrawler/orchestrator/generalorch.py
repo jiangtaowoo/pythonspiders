@@ -5,7 +5,7 @@ import time
 import copy
 from collections import deque
 from requests.exceptions import ConnectionError
-from requests.models import Response as ReqResponse
+#from requests.models import Response as ReqResponse
 from datacrawler.gdatacrawler import GeneralCrawler
 from dto.dtomanager import DTOManager
 from persistadaptor.baseadaptor import AdaptorSqlite
@@ -107,8 +107,8 @@ class BaseOrchestrator(object):
                     self.timed_var_site[0] = run_info[1]
                     try:
                         rsp_data = timed_process_request(run_info)
-                        if isinstance(rsp_data, ReqResponse):
-                            rsp_data = rsp_data.text
+                        #if isinstance(rsp_data, ReqResponse):
+                        #    rsp_data = rsp_data.text
                         self.rsp_data_q.append((run_info, rsp_data))
                     except ConnectionError:
                         hash_runinfo = (run_info[0],run_info[1],run_info[2],json.dumps(run_info[3]),run_info[4])
@@ -139,17 +139,15 @@ class BaseOrchestrator(object):
                 if next_rinfos:
                     for next_rinfo in next_rinfos:
                         self.craw_info_q.append(next_rinfo)
-                if not data_set:
-                    continue
-                    #break
-                for datarow in data_set:
-                    if self.addinfo_cb:
-                        self.addinfo_cb(datarow)
-                    if isdebug:
-                        self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
-                    else:
-                        #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
-                        timed_process_database(av_data_module, datarow)
+                if data_set:
+                    for datarow in data_set:
+                        if self.addinfo_cb:
+                            self.addinfo_cb(datarow)
+                        if isdebug:
+                            self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
+                        else:
+                            #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+                            timed_process_database(av_data_module, datarow)
                 if self.tips_cb:
                     #self.tips_cb(run_info[0])
                     timed_process_tips(run_info)
@@ -253,37 +251,30 @@ class BaseOrchestrator(object):
                 #rsp_data = self.crawler.process_request(*run_info[1:])
                 timed_var_site[0] = run_info[1]
                 rsp_data = timed_process_request(run_info)
-                if isinstance(rsp_data, ReqResponse):
-                    rsp_data = rsp_data.text
+                #if isinstance(rsp_data, ReqResponse):
+                #    rsp_data = rsp_data.text
                 #next_rinfos, data_set, av_data_module = self.crawler.exec_callback(rsp_data, run_info)
                 next_rinfos, data_set, av_data_module = timed_process_callback(rsp_data, run_info)
                 # add next running info to queue (tips,website,http,varmaps,sleepinterval)
                 if next_rinfos:
                     for next_rinfo in next_rinfos:
                         self.craw_info_q.append(next_rinfo)
-                if not data_set:
-                    continue
-                    #break
-                for datarow in data_set:
-                    if self.addinfo_cb:
-                        self.addinfo_cb(datarow)
-                    if isdebug:
-                        self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
-                    else:
-                        #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
-                        timed_process_database(av_data_module, datarow)
+                if data_set:
+                    for datarow in data_set:
+                        if self.addinfo_cb:
+                            self.addinfo_cb(datarow)
+                        if isdebug:
+                            self.businessmodel.notify_model_info_debug(av_data_module=av_data_module, **datarow)
+                        else:
+                            #self.businessmodel.notify_model_info_received(av_data_module=av_data_module, **datarow)
+                            timed_process_database(av_data_module, datarow)
                 if self.tips_cb:
                     #self.tips_cb(run_info[0])
                     timed_process_tips(run_info)
 
-                ts = time.time()
-                if ts-current_ts>60:
-                    current_ts = ts
-                    with open('timed_info_%s.txt' % (self.spidername), 'a+') as outf:
-                        out_dict = copy.deepcopy(timed_var_dict)
-                        for kt, vt in timed_var_dict.iteritems():
-                            for sitehttp, t in vt.iteritems():
-                                out_dict[kt][sitehttp] = int(t)
-                        outf.write(json.dumps(out_dict))
-                        outf.write('\n')
+                if isdebug:
+                    ts = time.time()
+                    if ts-current_ts>60:
+                        current_ts = ts
+                        self.record_time_elapsed()
         self.businessmodel.notify_model_info_end()
