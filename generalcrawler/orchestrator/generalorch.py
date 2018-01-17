@@ -51,6 +51,7 @@ class BaseOrchestrator(object):
         self.crawler_latest_work_time = []
         self.parser_latest_work_time = []
         self.run_info_retry = dict()
+        self.pipline_mode = 'sthread'
 
     def _init_crawler(self):
         app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -183,7 +184,10 @@ class BaseOrchestrator(object):
 
     def run_pipeline(self, isdebug=False):
         #self.run_pipeline_sthread(isdebug)
-        self.run_pipeline_gevent(isdebug)
+        if self.pipline_mode=='sthread':
+            self.run_pipeline_sthread(isdebug)
+        else:
+            self.run_pipeline_gevent(isdebug)
 
     def run_pipeline_gevent(self, isdebug=False):
         timed_var_dict = self.timed_var_dict
