@@ -13,6 +13,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.proxy import ProxyType
 from selenium.webdriver.common.proxy import Proxy
 
+
 class html_element_exists(object):
   def __init__(self, bywhat, id_or_name_or_xpath):
     self.bywhat = bywhat
@@ -32,6 +33,7 @@ class html_element_exists(object):
         return False
     return element
 
+
 class GeneralCrawler(object):
     def __init__(self, spidername=''):
         self._session = requests.session()
@@ -42,19 +44,12 @@ class GeneralCrawler(object):
         self.spidername = spidername
         self._cookie_updated = False
         self.browser = None
-        #app_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        #av_agent_file = os.path.sep.join([app_base_dir, 'useragent.txt'])
-        #if os.path.exists(av_agent_file):
-        #    with open(av_agent_file) as infile:
-        #        self.av_agents = []
-        #        for line in infile:
-        #            self.av_agents.append(line.strip())
 
     def _is_cookie_file_available(self, cookies_file_path):
         if os.path.exists(cookies_file_path):
             d_m = datetime.datetime.fromtimestamp(os.path.getmtime(cookies_file_path))
             date0 = datetime.datetime.today()
-            if (date0 - d_m).days<8:
+            if (date0 - d_m).days<6:
                 return True
         return False
 
@@ -137,7 +132,7 @@ class GeneralCrawler(object):
                 try:
                     e_obj = WebDriverWait(dr, 60).until(html_element_exists(einfo['loctype'], einfo['keyword']))
                     #e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
-                    elems[ename] = {'send_keys': e_obj.send_keys, 'clear': e_obj.clear, 'click': e_obj.click}
+                    elems[ename] = {'send_keys': (e_obj.send_keys,1), 'clear': (e_obj.clear,0), 'click': (e_obj.click,0)}
                 except NoSuchElementException:
                     print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
                     raw_input('Please operate manually, AFTER OPERATION SUCCESSFUL, press any key to continue!')
@@ -146,13 +141,17 @@ class GeneralCrawler(object):
                 only_one_click = None
                 for enmae, einfo in locateinfo.iteritems():
                     if 'click' in einfo['action']:
-                        only_one_click = elems[enmae]['click']
+                        only_one_click = elems[enmae]['click'][0]
                         continue
                     for act in einfo['action']:
+                        func_tuple = elems[enmae][act]
                         if enmae in payload:
-                            elems[enmae][act](payload[enmae])
+                            if func_tuple[1]:
+                                func_tuple[0](payload[enmae])
+                            else:
+                                func_tuple[0]()
                         else:
-                            elems[enmae][act]()
+                            func_tuple[0]()
                 if only_one_click:
                     only_one_click()
                 #raw_input('press any key IF LOGIN SUCCESSFUL, else please login manually first, then press any key!')
@@ -167,7 +166,7 @@ class GeneralCrawler(object):
             self._cookie_updated = True
         #return page source
         #pagedata = dr.page_source
-        pagedata = self.browser.page_source
+        pagedata = copy.deepcopy(self.browser.page_source)
         #dr.quit()
         return pagedata
 
@@ -176,7 +175,14 @@ class GeneralCrawler(object):
             return None
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
-        payload = siteinfo['data'] if 'data' in siteinfo else ''
+        if 'data' in siteinfo:
+            post_dkind = 'data'
+        elif 'json' in siteinfo:
+            post_dkind = 'json'
+        else:
+            post_dkind = 'data'
+        #payload = siteinfo['data'] if 'data' in siteinfo else ''
+        payload = siteinfo[post_dkind] if post_dkind in siteinfo else ''
         proxies = None
         if 'proxy' in siteinfo:
             proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
@@ -185,14 +191,26 @@ class GeneralCrawler(object):
         self._replace_keymapping(payload, now_data_maps)
         if self.session_used:
             if proxies:
-                rsp = self._session.post(url, headers=headers, data=payload, proxies=proxies)
+                if post_dkind=='json':
+                    rsp = self._session.post(url, headers=headers, json=payload, proxies=proxies)
+                else:
+                    rsp = self._session.post(url, headers=headers, data=payload, proxies=proxies)
             else:
-                rsp = self._session.post(url, headers=headers, data=payload)
+                if post_dkind=='json':
+                    rsp = self._session.post(url, headers=headers, json=payload)
+                else:
+                    rsp = self._session.post(url, headers=headers, data=payload)
         else:
             if proxies:
-                rsp = requests.post(url, headers=headers, data=payload, proxies=proxies)
+                if post_dkind=='json':
+                    rsp = requests.post(url, headers=headers, json=payload, proxies=proxies)
+                else:
+                    rsp = requests.post(url, headers=headers, data=payload, proxies=proxies)
             else:
-                rsp = requests.post(url, headers=headers, data=payload)
+                if post_dkind=='json':
+                    rsp = requests.post(url, headers=headers, json=payload)
+                else:
+                    rsp = requests.post(url, headers=headers, data=payload)
         return rsp
 
     def _get_data(self, siteinfo, now_data_maps):
@@ -251,6 +269,9 @@ class GeneralCrawler(object):
                 self._session = requests.session()
                 funcmap = {'post': self._post_data, 'get': self._get_data, 'selenium': self._selenium_data}
                 login_rsp = funcmap[siteinfo['method']](siteinfo, now_data_maps)
+                if self.browser:
+                    self.browser.quit()
+                    self.browser = None
                 cookies_dict = requests.utils.dict_from_cookiejar(self._session.cookies)
                 #save cookies
                 with open(cookies_file_path, 'w') as cookief:
