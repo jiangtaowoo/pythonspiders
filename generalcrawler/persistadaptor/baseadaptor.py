@@ -67,9 +67,9 @@ class AdaptorSqlite(object):
             cur.execute(sql)
             cur.close()
             ts = int(time.time())
-            if ts-self.cur_ts > 60:
-                self.cur_ts = ts
-                self.commit_database()
+            #if ts-self.cur_ts > 60:
+            #    self.cur_ts = ts
+            self.commit_database()
             #conn.commit()
             #conn.close()
 
