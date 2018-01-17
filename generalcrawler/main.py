@@ -37,8 +37,6 @@ def main(spidername='', excel_file_name=None):
     app_base_dir = os.path.dirname(os.path.abspath(__file__))
     orch_module = __import__('.'.join(['spiders', spidername, 'orchestrator.diyorch']), fromlist=[''])
     orch_cls = getattr(orch_module, 'DiyOrchestrator')
-    #persist_module = __import__('.'.join(['spiders', spidername, 'persistentcb']), fromlist=[''])
-    #persist_func = getattr(persist_module, 'sqlite_to_xlsx')
     if excel_file_name is None:
         excel_file_name = ''.join(['products_', str(datetime.date.today()), '.xlsx'])
         tenants = load_tenant_info(spidername)
@@ -50,13 +48,18 @@ def main(spidername='', excel_file_name=None):
             else:
                 tname = 'NICKNAME'
             addinfo = {'sitename': sitename, 'tenantname': tname, 'tenantalias': talias}
-            #orch.regist_addinfo_callback(functools.partial(addinfo_data, **addinfo))
+            orch.regist_addinfo_callback(functools.partial(addinfo_data, **addinfo))
             orch.regist_tips_callback(functools.partial(print_tips, tenantalias=talias))
             orch.setup_entry_info(tenant_item)
             orch.run_pipeline()
-    #print '>>> saving data to excel ...'
-    #excel_file_name = os.path.sep.join([app_base_dir, 'spiders', spidername, excel_file_name])
-    #persist_func(excel_file_name, '2018-1-6')
+    #output data format
+    persist_module = __import__('.'.join(['spiders', spidername, 'persistentcb']), fromlist=[''])
+    if persist_module:
+        persist_func = getattr(persist_module, 'sqlite_to_xlsx')
+        if persist_func:
+            print '>>> saving data to excel ...'
+            excel_file_name = os.path.sep.join([app_base_dir, 'spiders', spidername, excel_file_name])
+            persist_func(excel_file_name)
     print 'Finish!'
 
 @time_decorator
