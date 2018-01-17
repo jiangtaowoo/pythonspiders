@@ -8,7 +8,7 @@ import copy
 
 class NDSCallback(object):
     def __init__(self):
-        self.sleepinterval = 2
+        self.sleepinterval = 5
         self.sitename = 'shop.nordstrom.com'
         self.cur_spider_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.run_info_buffer = []
