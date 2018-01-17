@@ -15,7 +15,6 @@ www.dd528.com:
         generatorfunc: data_url_generator
   row_def:
     path: '/D[data]'
-    range: ':'
   col_def:
     productid: '/D[id]'
     productclass: '/D[firstCatalogId]'
@@ -60,7 +59,6 @@ pcshop.huimin100.cn:
         generatorfunc: data_url_generator
   row_def:
     path: '//div[contains(@class,"goods_item") and contains(@class,"shenceView")]'
-    range: ':'
   col_def:
     productid: './@data-pid'
     productclass: './@data-classid'
@@ -99,7 +97,6 @@ zgb.m.jd.com:
         generatorfunc: data_url_generator
   row_def:
     path: '/D[data]/D[wareInfoList]'
-    range: ':'
   col_def:
     productid: '/D[skuId]'
     productclass: '/D[firstCatId]'
@@ -115,6 +112,48 @@ zgb.m.jd.com:
   col_calc:
     product_url: ['calc_product_url', 'productid']
     product_brand: ['map_product_brand', 'productname']
+    product_spec: ['map_product_spec', 'productsize', '0']
+    product_qty: ['map_product_spec', 'productsize', '1']
+    product_taste: ['map_product_taste', 'productname']
+    public_date: ['map_today']
+www.dianjia.com:
+  datamodule: ['ProductModel', 'ProductPrice']
+  callback:
+    classinfo:
+      modulename: callbackdianjia
+      classname: DianJiaCallback
+    httpinfo:
+      login_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: login_url_generator
+      data_http:
+        data_type: json
+        callbackfunc: convert_data
+        generatorfunc: data_url_generator
+  row_def:
+    path: '/D[pageInfo]/D[list]'
+  col_def:
+    productid: '/D[id]'
+    product_brand: '/D[brandName]'
+    productclass: '/D[categoryName]'
+    productsize: '/D[specifications]'
+    productname: '/D[skuName]'
+    productunit: '/D[unit]'
+    productdate: '/D[shelfLife]'
+    productleft:  '/D[stock]'
+    product_lmt:  '/D[purchaseMinimum]'
+    productorderlimit: '/D[purchaseMaximum]'
+    productsales: '/D[salesNum]'
+    productonsalestatus: '/D@[alesMode]'
+    productonsale: '/D[isSaleOut]'
+    productimgrl: '/D[imageUrls]/L[0]'
+    productprice: '/D[originalPrice]'
+    productvipprice: '/D[salesPrice]'
+    productsaleprice: '/D[marketPrice]'
+    productiscoupon: '/D[guideComment]'
+  col_calc:
+    product_url: ['calc_product_url', 'productid']
     product_spec: ['map_product_spec', 'productsize', '0']
     product_qty: ['map_product_spec', 'productsize', '1']
     product_taste: ['map_product_taste', 'productname']

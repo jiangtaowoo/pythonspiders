@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import datetime
+import copy
 import yaml
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
@@ -92,15 +93,25 @@ def output_price_info(sqliteada, wb, start_date, tenant_row_mapping, colcnt_mapp
             ws = None
             al = Alignment(horizontal="center", vertical="center")
             date0 = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            talias = None
             for row in data_set:
                 shname = row[0]
                 start_col = colcnt_mapping[shname]
+                #new sheet data
+                if talias is None or shname != talias:
+                    date0 = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+                    talias = shname
+                    colidx = start_col
+                    #print talias, colidx
                 internal_id = row[1]
                 date1 = datetime.datetime.strptime(row[2], "%Y-%m-%d")
                 ws = wb[shname]
                 rowmapping = tenant_row_mapping[shname]
                 rowidx = rowmapping[internal_id]
-                colidx = start_col + col_step * (date1 - date0).days
+                #colidx = start_col + col_step * (date1 - date0).days
+                if (date1-date0).days > 0:
+                    colidx += col_step
+                    date0 = copy.deepcopy(date1)
                 first_cell = ws.cell(row=1, column=colidx)
                 first_cell.alignment = al
                 ws.cell(row=1, column=colidx, value=row[2])
@@ -111,7 +122,9 @@ def output_price_info(sqliteada, wb, start_date, tenant_row_mapping, colcnt_mapp
                     ws.cell(row=2, column=colidx+1, value=col_name_list[4])
                     ws.cell(row=rowidx, column=colidx + 1, value=row[4])
 
-def sqlite_to_xlsx(xls_file_name, start_date):
+def sqlite_to_xlsx(xls_file_name, start_date=None):
+    if not start_date:
+        start_date = '2018-1-1'
     current_dir = os.path.dirname(os.path.abspath(__file__))
     db_file_path = os.path.sep.join([current_dir, 'products.db'])
     wb = Workbook()
