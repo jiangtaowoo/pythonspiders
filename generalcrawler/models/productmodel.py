@@ -29,8 +29,10 @@ class ModelBase(object):
         def beautiful_str_data(xdata):
             if isinstance(xdata, unicode):
                 return xdata.encode('utf-8')
-            else:
+            elif xdata:
                 return str(xdata)
+            else:
+                return ''
         pk, fields_name = self._get_specific_model(modelname)
         (self._pk_data, self._fields_data) = (dict(), dict())
         for fname, fval in fields_name.iteritems():
@@ -58,6 +60,12 @@ class ModelBase(object):
                     self._pk_data = None
                     break
             #self._pk_data = {k: v for k, v in self._fields_data.iteritems() if k in pk}
+    
+    def _exclude_pk_data(self, modelname):
+        pk, fields_name = self._get_specific_model(modelname)
+        for k in pk:
+            if k in self._fields_data:
+                del self._fields_data[k]
 
     def regist_persist_adaptor(self, persist_adaptor):
         self._persist_adaptor = persist_adaptor
@@ -78,6 +86,9 @@ class ModelBase(object):
                 if self._pk_data is not None and self._fields_data is not None:
                     if not self._persist_adaptor.data_exists(modelname, modelcfg, **self._pk_data):
                         self._persist_adaptor.save_data(modelname, modelcfg, **self._fields_data)
+                    else:
+                        self._exclude_pk_data(modelname)
+                        self._persist_adaptor.update_data(modelname, modelcfg, self._pk_data, **self._fields_data)
 
     def notify_model_info_end(self):
         self._persist_adaptor.close_database()
