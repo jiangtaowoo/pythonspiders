@@ -66,12 +66,40 @@ class AdaptorSqlite(object):
             sql = "insert into %s (%s) values(%s)" % (tbname, sql_fields, sql_vals)
             cur.execute(sql)
             cur.close()
-            ts = int(time.time())
+            #ts = int(time.time())
             #if ts-self.cur_ts > 60:
             #    self.cur_ts = ts
             self.commit_database()
             #conn.commit()
             #conn.close()
+
+    def update_data(self, modelname, modelcfg, pk_data_d, **kwargs):
+        if modelname in self._dbs_cfg and pk_data_d is not None:
+            tbname = self._dbs_cfg[modelname]['tablename']
+            sql_fields_update = []
+            sql_pk_conditons = []
+            for k, v in pk_data_d.iteritems():
+                if isinstance(v,unicode):
+                    v1 = '"' + v.encode('utf-8').replace('"',"'") + '"'
+                else:
+                    v1 = '"' + str(v).replace('"',"'") + '"'
+                sql_pk_conditons.append(str(k)+'='+v1)
+            sql_pk_conditons = ' and '.join(sql_pk_conditons)
+            for k, v in kwargs.iteritems():
+                if isinstance(v,unicode):
+                    v1 = '"' + v.encode('utf-8').replace('"',"'") + '"'
+                else:
+                    v1 = '"' + str(v).replace('"',"'") + '"'
+                sql_fields_update.append(str(k)+'='+v1)
+            sql_fields_update = ','.join(sql_fields_update)
+            if not self.conn:
+                self.open_database()
+            #conn = sqlite3.connect(self._db_name)
+            cur = self.conn.cursor()
+            sql = "update %s set %s where %s" % (tbname, sql_fields_update, sql_pk_conditons)
+            cur.execute(sql)
+            cur.close()
+            self.commit_database()
 
     def data_exists(self, modelname, modelcfg, **kwargs):
         record_exists = False
