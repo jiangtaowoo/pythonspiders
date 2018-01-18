@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import copy
 import yaml
 from dto.htmldto import HtmlDTO
 from dto.jsondto import JsonDTO
@@ -107,7 +108,7 @@ class DTOManager(object):
         cb_generator_func = self._cb_funcs[sitename][cb_generatorname] if cb_generatorname else None
         next_run_info = None
         if cb_generator_func:
-            next_run_info = cb_generator_func(cb_site_obj, data, dmaps)
+            next_run_info = cb_generator_func(cb_site_obj, data, copy.deepcopy(dmaps))
         #step 2. pre-process data in callback class
         cb_funcname = self._dto_cfgs[sitename]['callback']['httpinfo'][sitehttp]['callbackfunc']
         cb_func = self._cb_funcs[sitename][cb_funcname] if cb_funcname else None
