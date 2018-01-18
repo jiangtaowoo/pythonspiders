@@ -83,6 +83,7 @@ www.dianjia.com:
     - [productonsalestatus, 销售方式]
     - [productonsale, 是否售罄]
     - [productorderlimit, 限购数量]
+    - [productiscoupon, 促销信息]
   prod_price:
     - [tenantalias, tenantalias]
     - [internal_id, internal_id]

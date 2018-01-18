@@ -145,7 +145,7 @@ www.dianjia.com:
     product_lmt:  '/D[purchaseMinimum]'
     productorderlimit: '/D[purchaseMaximum]'
     productsales: '/D[salesNum]'
-    productonsalestatus: '/D@[alesMode]'
+    productonsalestatus: '/D[salesMode]'
     productonsale: '/D[isSaleOut]'
     productimgrl: '/D[imageUrls]/L[0]'
     productprice: '/D[originalPrice]'
