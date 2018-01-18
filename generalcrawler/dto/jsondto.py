@@ -208,7 +208,7 @@ class JsonDTO(BaseDTO):
         # /D[key]/L[:]
         steps = [x for x in jpath.split('/') if x]
         if not steps:
-            return None
+            return data
         ret_data = data
         for stepinfo in steps:
             dl_type, dl_selector = self._parse_jpath(stepinfo)
@@ -235,6 +235,7 @@ class JsonDTO(BaseDTO):
         # '/D@data/L./D@specification'
         sitedto = self._get_sitedto_from_sitename(sitename)
         row_jpath = sitedto['row_def']['path']
+        iter_range = sitedto['row_def']['range'] if 'range' in sitedto['row_def'] else ':'
         col_jpaths = sitedto['col_def']
         rows_data = self._get_jpath_data(data, row_jpath)
         if rows_data:
@@ -247,10 +248,16 @@ class JsonDTO(BaseDTO):
                         data_row[field_name] = self._get_jpath_data(rows_data[irow], col_jpath)
                     data_rowset.append(data_row)
             elif isinstance(rows_data, dict):
-                for k, v_data in rows_data.iteritems():
+                if iter_range == ':':
+                    for k, v_data in rows_data.iteritems():
+                        data_row = {}
+                        for field_name, col_jpath in col_jpaths.iteritems():
+                            data_row[field_name] = self._get_jpath_data(v_data, col_jpath)
+                        data_rowset.append(data_row)
+                else:
                     data_row = {}
                     for field_name, col_jpath in col_jpaths.iteritems():
-                        data_row[field_name] = self._get_jpath_data(v_data, col_jpath)
+                        data_row[field_name] = self._get_jpath_data(rows_data, col_jpath)
                     data_rowset.append(data_row)
             return data_rowset
         else:
