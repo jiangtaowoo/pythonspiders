@@ -64,8 +64,8 @@ def main(spidername='', excel_file_name=None):
 
 @time_decorator
 def main_test(spidername=''):
-    mod_name = '.'.join(['spiders', spidername, 'orchestrator.diyorch'])
-    orch_module = __import__(mod_name, fromlist=[''])
+    app_base_dir = os.path.dirname(os.path.abspath(__file__))
+    orch_module = __import__('.'.join(['spiders', spidername, 'orchestrator.diyorch']), fromlist=[''])
     orch_cls = getattr(orch_module, 'DiyOrchestrator')
     tenants = load_tenant_info(spidername)
     orch = orch_cls(spidername)
