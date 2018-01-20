@@ -113,10 +113,6 @@ class GeneralCrawler(object):
         else:
             if len(self.browser.window_handles)>0:
                 self.browser.switch_to.window(self.browser.window_handles[0])
-        #f_e_by_id = dr.find_element_by_id
-        #f_e_by_name = dr.find_element_by_name
-        #f_e_by_xpath = dr.find_element_by_xpath
-        #loctype_func_map = {'id': f_e_by_id, 'name': f_e_by_name, 'xpath': f_e_by_xpath}
         url = siteinfo['url'] if 'url' in siteinfo else ''
         payload = siteinfo['data'] if 'data' in siteinfo else ''
         locateinfo = siteinfo['locate'] if 'locate' in siteinfo else ''
@@ -131,7 +127,6 @@ class GeneralCrawler(object):
             for ename, einfo in locateinfo.iteritems():
                 try:
                     e_obj = WebDriverWait(dr, 60).until(html_element_exists(einfo['loctype'], einfo['keyword']))
-                    #e_obj = loctype_func_map[einfo['loctype']](einfo['keyword'])
                     elems[ename] = {'send_keys': (e_obj.send_keys,1), 'clear': (e_obj.clear,0), 'click': (e_obj.click,0)}
                 except NoSuchElementException:
                     print 'Selenium failed to find element %s!!!' % (einfo['keyword'])
@@ -173,83 +168,60 @@ class GeneralCrawler(object):
     def _post_data(self, siteinfo, now_data_maps):
         if siteinfo['method'] != 'post':
             return None
+        request_dict = dict()
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
-        if 'data' in siteinfo:
-            post_dkind = 'data'
-        elif 'json' in siteinfo:
-            post_dkind = 'json'
-        else:
-            post_dkind = 'data'
-        #payload = siteinfo['data'] if 'data' in siteinfo else ''
-        payload = siteinfo[post_dkind] if post_dkind in siteinfo else ''
-        proxies = None
-        if 'proxy' in siteinfo:
-            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
         url = self._replace_keymapping(url, now_data_maps)
         self._replace_keymapping(headers, now_data_maps)
-        self._replace_keymapping(payload, now_data_maps)
-        if self.session_used:
-            if proxies:
-                if post_dkind=='json':
-                    rsp = self._session.post(url, headers=headers, json=payload, proxies=proxies)
-                else:
-                    rsp = self._session.post(url, headers=headers, data=payload, proxies=proxies)
-            else:
-                if post_dkind=='json':
-                    rsp = self._session.post(url, headers=headers, json=payload)
-                else:
-                    rsp = self._session.post(url, headers=headers, data=payload)
+        if not url or not headers:
+            return None
         else:
-            if proxies:
-                if post_dkind=='json':
-                    rsp = requests.post(url, headers=headers, json=payload, proxies=proxies)
-                else:
-                    rsp = requests.post(url, headers=headers, data=payload, proxies=proxies)
-            else:
-                if post_dkind=='json':
-                    rsp = requests.post(url, headers=headers, json=payload)
-                else:
-                    rsp = requests.post(url, headers=headers, data=payload)
+            request_dict['url'] = url
+            request_dict['headers'] = headers
+        av_post_kind = ['data', 'json']
+        for post_dkind in av_post_kind:
+            if post_dkind in siteinfo:
+                payload = siteinfo[post_dkind]
+                self._replace_keymapping(payload, now_data_maps)
+                if payload:
+                    request_dict[post_dkind] = payload
+                #only one kind of data post is support(data=payload, or json=payload)
+                break
+        if 'proxy' in siteinfo:
+            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
+            request_dict['proxies'] = proxies
+        # make request
+        if self.session_used:
+            rsp = self._session.post(**request_dict)
+        else:
+            rsp = requests.post(**request_dict)
         return rsp
 
     def _get_data(self, siteinfo, now_data_maps):
         if siteinfo['method'] != 'get':
             return None
+        request_dict = dict()
         url = siteinfo['url'] if 'url' in siteinfo else ''
         headers = siteinfo['headers'] if 'headers' in siteinfo else ''
-        #from random import choice
-        #headers['User-Agent'] = choice(self.av_agents)
-        payload = siteinfo['data'] if 'data' in siteinfo else ''
-        proxies = None
-        if 'proxy' in siteinfo:
-            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
         url = self._replace_keymapping(url, now_data_maps)
         self._replace_keymapping(headers, now_data_maps)
-        self._replace_keymapping(payload, now_data_maps)
-        rsp = None
-        if payload:
-            if self.session_used:
-                if proxies:
-                    rsp = self._session.get(url, headers=headers, params=payload, proxies=proxies)
-                else:
-                    rsp = self._session.get(url, headers=headers, params=payload)
-            else:
-                if proxies:
-                    rsp = requests.get(url, headers=headers, params=payload, proxies=proxies)
-                else:
-                    rsp = requests.get(url, headers=headers, params=payload)
+        if not url or not headers:
+            return None
         else:
-            if self.session_used:
-                if proxies:
-                    rsp = self._session.get(url, headers=headers, proxies=proxies)
-                else:
-                    rsp = self._session.get(url, headers=headers)
-            else:
-                if proxies:
-                    rsp = requests.get(url, headers=headers, proxies=proxies)
-                else:
-                    rsp = requests.get(url, headers=headers)
+            request_dict['url'] = url
+            request_dict['headers'] = headers
+        payload = siteinfo['data'] if 'data' in siteinfo else ''
+        self._replace_keymapping(payload, now_data_maps)
+        if payload:
+            request_dict['params'] = payload
+        if 'proxy' in siteinfo:
+            proxies = {'http': 'http://%s' % (siteinfo['proxy']), 'https': 'http://%s' % (siteinfo['proxy'])}
+            request_dict['proxies'] = proxies
+        # make request
+        if self.session_used:
+            rsp = self._session.get(**request_dict)
+        else:
+            rsp = requests.get(**request_dict)
         return rsp
 
     def _login_website(self, sitename, sitehttp, now_data_maps):
@@ -269,9 +241,8 @@ class GeneralCrawler(object):
                 self._session = requests.session()
                 funcmap = {'post': self._post_data, 'get': self._get_data, 'selenium': self._selenium_data}
                 login_rsp = funcmap[siteinfo['method']](siteinfo, now_data_maps)
-                if self.browser:
-                    self.browser.quit()
-                    self.browser = None
+                #generate cookies
+                self.end_request()
                 cookies_dict = requests.utils.dict_from_cookiejar(self._session.cookies)
                 #save cookies
                 with open(cookies_file_path, 'w') as cookief:
@@ -308,3 +279,8 @@ class GeneralCrawler(object):
             time.sleep(sleepinterval)
         funcmap = {'post': self._post_data, 'get': self._get_data, 'selenium': self._selenium_data}
         return funcmap[siteinfo['method']](siteinfo, now_data_maps)
+
+    def end_request(self):
+        if self.browser is not None:
+            self.browser.quit()
+            self.browser = None

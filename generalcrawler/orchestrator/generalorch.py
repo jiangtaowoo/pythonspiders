@@ -227,6 +227,7 @@ class BaseOrchestrator(object):
         #step4. wait for finishing
         gevent.joinall( threads )
         self.businessmodel.notify_model_info_end()
+        self.crawler.end_request()
         self.dump_failed_task()
 
     def run_pipeline_sthread(self, isdebug=False):
@@ -282,3 +283,4 @@ class BaseOrchestrator(object):
                         current_ts = ts
                         self.record_time_elapsed()
         self.businessmodel.notify_model_info_end()
+        self.crawler.end_request()
