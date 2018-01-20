@@ -5,13 +5,17 @@ import time
 import json
 import yaml
 import codecs
-#import copy
+from collections import deque
+import copy
 #import collections
 #import urllib
 #import lxml.html
 import requests
 from requests.models import Response as ReqResponse
 import fanyi_sign
+import gevent
+from gevent import monkey
+monkey.patch_all()
 
 def time_decorator(method_to_be_timed):
     def timed(*args, **kw):
@@ -48,6 +52,8 @@ class BDTranslation(object):
         self.js_var_dict = dict()
         self.request_dict = dict()
         self._session = requests.session()
+        self.words_tobe_t = deque([])
+        self.tran_results = dict()
 
     def _init_request(self):
         cookie_dict = {'locale': 'zh', 'BAIDUID': '84714D78F6D00E5CF202E62D0D643143:FG=1'}
@@ -92,11 +98,22 @@ class BDTranslation(object):
     def _load_words(self, filename):
         #return yaml.load(open(filename))['words']
         if os.path.exists(filename):
-            data = yaml.load(open(filename))
-            if not isinstance(data, list):
-                data = data.split(' ')
-            return data
-        return []
+            words = []
+            self.words_tobe_t = deque([])
+            lineidx = 0
+            with codecs.open(filename, 'r', 'utf-8') as infile:
+                for line in infile:
+                    line = line.replace('\r','').replace('\n','').strip()
+                    if line:
+                        self.words_tobe_t.append((lineidx,line))
+                        words.append(line)
+                        lineidx += 1
+            return words
+            #data = yaml.load(open(filename))
+            #if not isinstance(data, list):
+            #    data = data.split(' ')
+            #return data
+        return False
 
     def _parse_trans_rsp(self, rsp):
         if isinstance(rsp, ReqResponse):
@@ -107,8 +124,40 @@ class BDTranslation(object):
         return None
 
     def _output_trans_results(self, words, tran_results):
+        print len(words), len(tran_results)
+        return True
         for word in words:
             print word, tran_results[word]
+
+    def _output_trans_results_tofile(self, words, tran_results, filename='trans_result.txt'):
+        with codecs.open(filename, 'w', 'utf-8') as outf:
+            for word in words:
+                if isinstance(tran_results[word], str) or isinstance(tran_results[word], unicode):
+                    outf.write(word)
+                    outf.write('\n')
+                    outf.write(tran_results[word])
+                    outf.write('\n')
+                else:
+                    print word, type(tran_results[word])
+
+    def translate_worker(self, workerid, srclang):
+        while self.words_tobe_t:
+            lineidx, word = self.words_tobe_t.popleft()
+            if word:
+                print 'Woker %d is traslating line %d ...' % (workerid, lineidx)
+                req_dict = copy.deepcopy(self.request_dict)
+                req_dict['data'] = self._gen_payload(word, srclang)
+                rsp = self._session.post(**req_dict)
+                dst_word = self._parse_trans_rsp(rsp)
+                if dst_word is None:
+                    self.words_tobe_t.append((lineidx, word))
+                    print '****** Worker %d failed on line %d ...' % (workerid, lineidx)
+                    gevent.sleep(5)
+                else:
+                    self.tran_results[word] = dst_word
+            else:
+                gevent.sleep(0)
+        print 'worker %d is quiting ...' % (workerid)
 
     def translate_request(self, srclang='zh', filename='wordlist.txt'):
         # srclang='zh'   translate   zh --> en
@@ -122,12 +171,23 @@ class BDTranslation(object):
         #step 2. visit translate api
         tran_results = dict()
         self.request_dict['url'] = urlapi
-        for word in words:
+        # start gevent thread
+        threads = []
+        c_worker_size = 20
+        for i in xrange(0,c_worker_size):
+            threads.append( gevent.spawn(self.translate_worker, i+1, srclang) )
+        gevent.joinall( threads )
+        """
+        for idx, word in enumerate(words):
             self.request_dict['data'] = self._gen_payload(word, srclang)
             rsp = self._session.post(**self.request_dict)
             tran_results[word] = self._parse_trans_rsp(rsp)
+            print 'transalting %d of %d' % (idx, len(words))
             #break
-        self._output_trans_results(words, tran_results)
+        """
+        print 'saving result ...'
+        self._output_trans_results_tofile(words, self.tran_results)
+        #self._output_trans_results(words, self.tran_results)
 
     def translate_selenium(self, srclang='zh', filename='wordlist.txt'):
         from selenium import webdriver
