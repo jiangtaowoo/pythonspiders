@@ -4,11 +4,13 @@ from sys import argv
 import time
 import json
 import yaml
+import codecs
 #import copy
 #import collections
 #import urllib
 #import lxml.html
 import requests
+from requests.models import Response as ReqResponse
 import fanyi_sign
 
 def time_decorator(method_to_be_timed):
@@ -40,131 +42,123 @@ class html_element_exists(object):
             return False
         return element
     
-    
-@time_decorator
-def main_selenium(filename='wordlist.txt'):
-    from selenium import webdriver
-    from selenium.webdriver.support.ui import WebDriverWait
-    url = 'https://fanyi.baidu.com'
-    urlbase = 'https://fanyi.baidu.com/#zh/en/'
-    words = load_words(filename)
-    dr = webdriver.Firefox()
-    dr.get(url)
-    words_result = []
-    result_xpath = '//p[contains(@class,"target-output")]/span'
-    for word in words:
-        dr.get( urlbase + word )
-        elem = WebDriverWait(dr, 60).until(html_element_exists('xpath', result_xpath))
-        words_result.append(elem.text)
-        dr.get(url)
-    for idx, word in enumerate(words):
-        print word, words_result[idx]
-    dr.quit()
 
-"""
-def get_js_var(rsp):
-    if not isinstance(rsp,str) and not isinstance(rsp,unicode):
-        txt = rsp.text
-    else:
-        txt = rsp
-    idx1 = txt.index('window.gtk')
-    window_gtk = str(txt[idx1:idx1+50].split(';')[0].split('=')[1].strip().replace("'",''))
-    idx2 = txt.index('token:')
-    token = str(txt[idx2:idx2+50].split(',')[0].split(':')[1].strip().replace("'",""))
-    js_var_dict = dict()
-    js_var_dict['token'] = str(token)
-    js_var_dict['gtk'] = str(window_gtk)
-    return js_var_dict
+class BDTranslation(object):
+    def __init__(self):
+        self.js_var_dict = dict()
+        self.request_dict = dict()
+        self._session = requests.session()
 
-def first_visit(sess, url, headers):
-    return sess.get(url, headers=headers)
-"""
+    def _init_request(self):
+        cookie_dict = {'locale': 'zh', 'BAIDUID': '84714D78F6D00E5CF202E62D0D643143:FG=1'}
+        self._session.cookies = requests.utils.cookiejar_from_dict(cookie_dict)
+        url = 'http://fanyi.baidu.com'
+        headers = {'Host': 'fanyi.baidu.com', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/63.0.3239.84 Chrome/63.0.3239.84 Safari/537.36', 'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate', 'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8','Connection': 'keep-alive', 'Referer': 'http://fanyi.baidu.com/', 'X-Requested-With': 'XMLHttpRequest'}
+        self.request_dict['url'] = url
+        self.request_dict['headers'] = headers
+        rsp = self._session.get(**self.request_dict)
+        return self._get_js_var(rsp)
 
-def load_words(filename):
-    #return yaml.load(open(filename))['words']
-    return yaml.load(open(filename)).split(' ')
+    def _get_js_var(self, rsp):
+        if isinstance(rsp, ReqResponse):
+            htmlText = rsp.text
+        else:
+            htmlText = rsp
+        try:
+            idx1 = htmlText.index('window.gtk')
+            window_gtk = str(htmlText[idx1:idx1+50].split(';')[0].split('=')[1].strip().replace("'",''))
+            idx2 = htmlText.index('token:')
+            token = str(htmlText[idx2:idx2+50].split(',')[0].split(':')[1].strip().replace("'",""))
+            self.js_var_dict['token'] = str(token)
+            self.js_var_dict['gtk'] = str(window_gtk)
+            return True
+        except:
+            return None
 
-def get_payload(js_var_dict, word):
-    token = js_var_dict['token']
-    window_gtk = js_var_dict['gtk']
-    sign = fanyi_sign.calc_sign(word, window_gtk)
-    payload = dict()#collections.OrderedDict()
-    payload['from'] = 'zh'
-    payload['to'] = 'en'
-    payload['query'] = word
-    payload['simple_means_flag'] = '3'
-    payload['sign'] = sign
-    payload['token'] = token
-    #payload['query'] = urllib.quote(word.encode('utf-8'))
-    return payload
+    def _gen_payload(self, word, srclang):
+        token = self.js_var_dict['token']
+        window_gtk = self.js_var_dict['gtk']
+        sign = fanyi_sign.calc_sign(word, window_gtk)
+        payload = dict()#collections.OrderedDict()
+        payload['from'] = srclang
+        payload['to'] = 'en' if srclang=='zh' else 'zh'
+        payload['query'] = word
+        payload['simple_means_flag'] = '3'
+        payload['sign'] = sign
+        payload['token'] = token
+        #payload['query'] = urllib.quote(word.encode('utf-8'))
+        return payload
 
-def translate(sess, url, headers, payload):
-    rsp = sess.post(url, headers=headers, data=payload)
-    try:
-        return json.loads(rsp.text)['trans_result']['data'][0]['dst']
-    except:
-        print payload
-        print rsp.text
+    def _load_words(self, filename):
+        #return yaml.load(open(filename))['words']
+        if os.path.exists(filename):
+            data = yaml.load(open(filename))
+            if not isinstance(data, list):
+                data = data.split(' ')
+            return data
+        return []
+
+    def _parse_trans_rsp(self, rsp):
+        if isinstance(rsp, ReqResponse):
+            try:
+                return json.loads(rsp.text)['trans_result']['data'][0]['dst']
+            except:
+                return None
         return None
 
-def load_valid_cookie():
-    cookies_dict = dict()
-    cookies_dict['BAIDUID'] = 'F2D26E6860E87B9920DCFD8FD6E16C96:FG=1'
-    cookies_dict['BIDUPSID'] = 'F2D26E6860E87B9920DCFD8FD6E16C96'
-    cookies_dict['PSTM'] = '1511952139'
-    cookies_dict['cflag'] = '15:3'
-    cookies_dict['locale'] = 'zh'
-    cookies_dict['from_lang_often'] = '%5B%7B%22value%22%3A%22en%22%2C%22text%22%3A%22%u82F1%u8BED%22%7D%2C%7B%22value%22%3A%22zh%22%2C%22text%22%3A%22%u4E2D%u6587%22%7D%5D'
-    cookies_dict['to_lang_often'] =  '%5B%7B%22value%22%3A%22zh%22%2C%22text%22%3A%22%u4E2D%u6587%22%7D%2C%7B%22value%22%3A%22en%22%2C%22text%22%3A%22%u82F1%u8BED%22%7D%5D'
-    cookies_dict['REALTIME_TRANS_SWITCH']='1'
-    cookies_dict['FANYI_WORD_SWITCH']='1'
-    cookies_dict['HISTORY_SWITCH']='1'
-    cookies_dict['SOUND_SPD_SWITCH']='1'
-    cookies_dict['SOUND_PREFER_SWITCH']='1'
-    cookies_dict['Hm_lvt_64ecd82404c51e03dc91cb9e8c025574'] = '1516367312,1516371326,1516372831'
-    cookies_dict['Hm_lpvt_64ecd82404c51e03dc91cb9e8c025574'] ='1516372905'
-    return cookies_dict
+    def _output_trans_results(self, words, tran_results):
+        for word in words:
+            print word, tran_results[word]
 
-@time_decorator
-def main(filename='wordlist.txt'):
-    url = 'https://fanyi.baidu.com'
-    #urllangdetect = 'http://fanyi.baidu.com/langdetect'
-    urlapi = 'http://fanyi.baidu.com/v2transapi'
-    words = load_words(filename)
-    headers = {'Host': 'fanyi.baidu.com', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0', 'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate', 'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2', 'Connection': 'keep-alive'}
-    #headers = copy.deepcopy(headers)
-    headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
-    headers['Referer'] = 'http://fanyi.baidu.com/'
-    headers['X-Requested-With'] = 'XMLHttpRequest'
-    sess = requests.session()
-    #rsp = first_visit(sess, url, headers)
+    def translate_request(self, srclang='zh', filename='wordlist.txt'):
+        # srclang='zh'   translate   zh --> en
+        # srclang='en'   translate   en --> zh
+        words = self._load_words(filename)
+        urlapi = 'http://fanyi.baidu.com/v2transapi'
+        #step 1. first visit, to get gtk, token
+        if not self._init_request():
+            print 'init failed, quiting'
+            return False
+        #step 2. visit translate api
+        tran_results = dict()
+        self.request_dict['url'] = urlapi
+        for word in words:
+            self.request_dict['data'] = self._gen_payload(word, srclang)
+            rsp = self._session.post(**self.request_dict)
+            tran_results[word] = self._parse_trans_rsp(rsp)
+            #break
+        self._output_trans_results(words, tran_results)
 
-    #update cookie
-    sess.cookies = requests.utils.cookiejar_from_dict(load_valid_cookie())
-    #js_var_dict = get_js_var(rsp)
-    js_var_dict = dict()
-    js_var_dict['gtk'] = "320305.131321201"
-    js_var_dict['token'] = '327dadb43ba01fe117bd0350a0b28af9'
-    #step 1.
-    tran_results = []
-    for word in words:
-        #step 2.
-        payload = get_payload(js_var_dict, word)
-        transed_word = translate(sess, urlapi, headers, payload)
-        tran_results.append(transed_word)
-        #break
-    for idx, word in enumerate(words):
-        print words[idx], tran_results[idx]
-        #break
-        
+    def translate_selenium(self, srclang='zh', filename='wordlist.txt'):
+        from selenium import webdriver
+        from selenium.webdriver.support.ui import WebDriverWait
+        url = 'https://fanyi.baidu.com'
+        urlbase = 'https://fanyi.baidu.com/#zh/en/'
+        words = self._load_words(filename)
+        dr = webdriver.Firefox()
+        dr.get(url)
+        tran_results = dict()
+        result_xpath = '//p[contains(@class,"target-output")]/span'
+        for word in words:
+            dr.get( urlbase + word )
+            elem = WebDriverWait(dr, 60).until(html_element_exists('xpath', result_xpath))
+            tran_results[word] = elem.text
+            dr.get(url)
+        dr.quit()
+        self._output_trans_results(words, tran_results)
+
+    @time_decorator
+    def translate(self, srclang='zh', filename='wordlist.txt', visible=False):
+        if not visible:
+            self.translate_request(srclang, filename)
+        else:
+            self.translate_selenium(srclang, filename)
+
 if __name__=="__main__":
+    tranobj = BDTranslation()
     if len(argv)==1:
-        main()
-    elif len(argv)==2:
-        script, filename = argv
-        if os.path.exists(filename):
-            main(filename)
+        tranobj.translate()
     elif len(argv)==3:
-        script, filename, param = argv
-        if os.path.exists(filename) and param=='debug':
-            main_selenium(filename)
+        script, lang, filename = argv
+        if lang in ['en','zh'] and os.path.exists(filename):
+            tranobj.translate(srclang=lang, filename=filename)

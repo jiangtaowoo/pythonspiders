@@ -37,6 +37,8 @@ def calc_sign(input_str, window_gtk="320305.131321201"):
     for idx, item_char in enumerate(input_str):
         A = ord(item_char)
         if A<128:
+            if codeidx>=len(S_codelist):
+                S_codelist.append(None)
             S_codelist[codeidx] = A
             codeidx += 1
         else:
