@@ -1,0 +1,45 @@
+CarSeries:
+  PK: ['brandid', 'seriesid']
+  cols:
+    brandid: 1
+    brandname: 1
+    subbrandid: 0
+    subbrandname: 0
+    seriesid: 0
+    seriesname: 0
+    carlevel: 0
+    carstruct: 0
+    carengine: 0
+    cargearbox: 0
+    carcolor: 0
+    carcolorbg: 0
+    carprice: 0
+    userrank: 0
+CarSpecs:
+  PK: ['specid', 'seriesid']
+  cols:
+    seriesid: 1
+    specid: 1
+    specname: 1
+    seriessubinfo: 0
+    salestatus: 0
+    drivertype: 0
+    geartype: 0
+    userfocusrank: 0
+    carprice: 0
+CarPrice:
+  PK: ['specid', 'cityid', 'dealerid', 'public_date']
+  cols:
+    specid: 1
+    cityid: 1
+    cityname: 0
+    dealerid: 1
+    seriesid: 0
+    saleprice: 0
+    saleprice_min: 0
+    public_date: 1
+DealerInfo:
+  PK: ['dealerid']
+  cols:
+    dealerid: 1
+    dealername: 0

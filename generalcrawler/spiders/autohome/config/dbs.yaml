@@ -1,0 +1,8 @@
+CarSeries:
+  tablename: car_series
+CarSpecs:
+  tablename: car_specs
+CarPrice:
+  tablename: car_price
+DealerInfo:
+  tablename: dealer_info

@@ -1,0 +1,105 @@
+car.autohome.com.cn-brand:
+  datamodule: ['CarSeries']
+  callback:
+    classinfo:
+      modulename: callbackautohome
+      classname: AutohomeCallback
+    httpinfo:
+      init_http:
+        data_type: null
+        callbackfunc: null
+        generatorfunc: init_url_generator
+      data_http:
+        data_type: html
+        callbackfunc: null
+        generatorfunc: brand_url_generator
+  row_def:
+    path: '//div[@class="list-cont-main"]'
+  col_def:
+    brandidinfo: './ancestor::div[contains(@class,"brandtab-cont")]/preceding-sibling::div[@class="uibox"]/div[@class="uibox-title"]/h2/a/@href'
+    brandname: './ancestor::div[contains(@class,"brandtab-cont")]/preceding-sibling::div[@class="uibox"]/div[@class="uibox-title"]/h2/a/text()'
+    subbrandidinfo: '(./ancestor::div[@class="list-cont"]/preceding-sibling::div[@class="brand-title"])[last()]/a/@href'
+    subbrandname: '(./ancestor::div[@class="list-cont"]/preceding-sibling::div[@class="brand-title"])[last()]/a/h3/text()'
+    seriesidinfo: './div[@class="main-title"]/@id'
+    seriesname: './div[@class="main-title"]/a/text()'
+    carlevel: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[1]/span'
+    carstruct: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[2]//a/text()'
+    carengine: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[3]//a/text()'
+    cargearbox: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[4]//a/text()'
+    carcolor: './div[@class="main-lever"]/div[@class="main-lever-left"]//li[@class="lever-ul-color"]/div[contains(@class,"carcolor")]//a//div[@class="tip-content"]/text()'
+    carcolorbginfo: './div[@class="main-lever"]/div[@class="main-lever-left"]//li[@class="lever-ul-color"]/div[contains(@class,"carcolor")]//a//em[@style]/@style'
+    carprice: './div[@class="main-lever"]/div[@class="main-lever-right"]/div/span[contains(@class,"lever-price")]/span/text()'
+    userrank: './div[@class="main-lever"]/div[@class="main-lever-right"]/div[@class="score-cont"]//span[@class="score-number"]/text()'
+  col_calc:
+    brandid: ['calc_brandid', 'brandidinfo']
+    subbrandid: ['calc_brandid', 'subbrandidinfo']
+    seriesid: ['calc_seriesid', 'seriesidinfo']
+    carcolorbg: ['calc_carcolorbg', 'carcolorbginfo']
+car.autohome.com.cn-series:
+  datamodule: ['CarSpecs']
+  callback:
+    classinfo:
+      modulename: callbackautohome
+      classname: AutohomeCallback
+    httpinfo:
+      data_http:
+        data_type: html
+        callbackfunc: null
+        generatorfunc: null
+  row_def:
+    path: '//div[@class="interval01"]//li[@data-value]'
+  col_def:
+    specidinfo: './div[@class="interval01-list-cars"]//p[@id]/@id'
+    specname: './div[@class="interval01-list-cars"]//p[@id]/a[@href]/text()'
+    seriesidurlinfo: './ancestor::body//div[@class="main-title"]/a[@href]/@href'
+    seriessubinfo: '(./ancestor::div[@class="interval01"])[last()]//span[@class="interval01-list-cars-text"]/text()'
+    salestatus: './div[@class="interval01-list-cars"]//p[not(@id)]//span[contains(@class,"label")]/text()'
+    drivertype: './div[@class="interval01-list-cars"]//p[not(@id)]//span[not(@class)][1]/text()'
+    geartype: './div[@class="interval01-list-cars"]//p[not(@id)]//span[not(@class)][2]/text()'
+    userfocusrankinfo: './div[@class="interval01-list-attention"]//span[@id]/@style'
+    carprice: './div[@class="interval01-list-guidance"]//a[@title]/following-sibling::text()'
+  col_calc:
+    specid: ['calc_specid', 'specidinfo']
+    seriesid: ['calc_seriesid_byurl', 'seriesidurlinfo']
+    userfocusrank: ['calc_focusrank', 'userfocusrankinfo']
+car.autohome.com.cn-dealer:
+  datamodule: ['DealerInfo']
+  callback:
+    classinfo:
+      modulename: callbackautohome
+      classname: AutohomeCallback
+    httpinfo:
+      data_http:
+        data_type: html
+        callbackfunc: null
+        generatorfunc: null
+  row_def:
+    path: '//div[@class="name-title"]'
+  col_def:
+    dealeridinfo: './a/@href'
+    dealername: './a//text()'
+  col_calc:
+    dealerid: ['calc_dealerid', 'dealeridinfo']
+car.autohome.com.cn-price:
+  datamodule: ['CarPrice']
+  callback:
+    classinfo:
+      modulename: callbackautohome
+      classname: AutohomeCallback
+    httpinfo:
+      data_http:
+        data_type: json
+        callbackfunc: convert_dealer_price_json
+        generatorfunc: null
+  row_def:
+    path: '/D[body]/D[item]'
+  col_def:
+    specid: '/D[SpecId]'
+    cityid: '/D[CityId]'
+    cityname: '/D[CityName]'
+    dealerid: '/D[DealerId]'
+    seriesid: '/D[SeriesId]'
+    saleprice_min: '/D[MinPrice]'
+    saleprice: '/D[Price]'
+  col_calc:
+    public_date: ['calc_today']
