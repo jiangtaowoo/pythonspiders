@@ -1,0 +1,20 @@
+TMallModel:
+  PK: ['internal_id']
+  cols:
+    internal_id: ['sitename', 'itemid', 'sellerid', 'commentid']
+    sitename: 1
+    produrl: 1
+    prodname: 1
+    itemid: 1
+    sellerid: 1
+    commentid: 1
+    username: 0
+    golduser: 0
+    ratedate: 0
+    sku: 0
+    content: 0
+    extcol1: 0
+    extcol2: 0
+    extcol3: 0
+    extcol4: 0
+    extcol5: 0

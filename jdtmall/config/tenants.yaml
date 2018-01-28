@@ -1,0 +1,19 @@
+RUN:
+  tmall.com:
+    - '新西兰进口牛奶Anchor安佳全脂纯牛奶250ml*24盒/1箱 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.60f0f0b189aarY&id=44121706589&rewcatid=51440019'
+    - 'Apple/苹果 iPhone X': 'https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.8.1f6d3ac83X6Wxg&id=560257961625&areaId=320100&user_id=1917047079&cat_id=2&is_b=1&rn=a851bb9cf87bdcb342e958326cfa1955&sku_properties=10004:709990523'
+  liangxinyao.com:
+    - '云南白药喷雾剂气雾剂85g+60g跌打扭伤镇痛消肿喷剂药品': 'https://detail.liangxinyao.com/item.htm?spm=a222y.8236280.9350834398.11.15deb0c3FgUIim&acm=lb-zebra-199393-2277068.1003.4.1997684&id=538427354750&scm=1003.4.lb-zebra-199393-2277068.ITEM_538427354750_1997684&skuId=3216394342597'
+NORUN:
+  tmall.com:
+    - '加多宝 凉茶 茶饮料 250ml*6/组 怕上火 喝加多宝 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.102444abAIbQHg&id=43155662215&rewcatid=50514008'
+    - '新西兰进口牛奶Anchor安佳全脂纯牛奶250ml*24盒/1箱 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.60f0f0b189aarY&id=44121706589&rewcatid=51440019'
+    - 'Apple/苹果 iPhone X': 'https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.8.1f6d3ac83X6Wxg&id=560257961625&areaId=320100&user_id=1917047079&cat_id=2&is_b=1&rn=a851bb9cf87bdcb342e958326cfa1955&sku_properties=10004:709990523'
+    - 'LEGO乐高 经典创意大号积木盒10698小颗粒拼插塑料积木儿童玩具': 'https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.16.63f7e369WgwTFQ&id=533020144717&skuId=3553078192164&areaId=320100&user_id=859385837&cat_id=2&is_b=1&rn=f299f249d689d440a58315a45ccf77b9'
+  tmall.hk:
+    - 'Gifrer法国生理海盐水滴鼻剂 0.9%等渗婴儿童宝宝通鼻塞液洗鼻腔': https://detail.tmall.hk/hk/item.htm?spm=a1z10.5-b-s.w4011-15142465107.97.wSZ5OW&id=538210886460&rn=448e53cf63b6c8377fcccf5c2b1dc246&abbucket=14
+    - 'Gifrer法国婴儿爽身粉驱痱止痒痱子粉': 'https://detail.tmall.hk/hk/item.htm?spm=a1z10.5-b-s.w4011-15142465107.112.J8XiDW&id=545242168150&rn=0f8a7a873fbe0dc234f9b33b00e6e10c&abbucket=17'
+ACCOUNT:
+  tmall.com:
+    - ['taobao_loginid1', 'taobao_password1']
+    - ['taobao_loginid2', 'taobao_password2']
