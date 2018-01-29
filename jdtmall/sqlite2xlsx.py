@@ -28,7 +28,7 @@ def add_worksheet_headers(dbrow, wb, shname, col_name_list, start_idx):
 def adjust_column_width(wb):
     for shname in wb.sheetnames:
         ws = wb[shname]
-        if 'jd.com' in shname:
+        if 'jd.com' in shname or 'yiyaojd.com' in shname or 'jd.hk' in shname:
             ws.column_dimensions['A'].width = 10
             ws.column_dimensions['B'].width = 20
             ws.column_dimensions['C'].width = 10

@@ -160,7 +160,7 @@ class TMallCrawler(BaseCrawler):
                 run_obj = crawler_q.popleft()
                 print '>>>TMALL>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
                 dataset = self._get_one_page_comment(self.sess, run_obj)
-                if not dataset:
+                if dataset is None:
                     if run_obj.try_cnt<5:
                         run_obj.try_cnt += 1
                         if run_obj.sleepinterval==0:

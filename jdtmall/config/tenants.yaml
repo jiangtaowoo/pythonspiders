@@ -1,16 +1,14 @@
 RUN:
+  yiyaojd.com:
+    - '金达克宁 酮康唑乳膏 15g （治脚气脚痒手足癣股癣花斑癣）': 'http://item.yiyaojd.com/2943370.html'
+  jd.hk:
+    - "汤普森Thompson's儿童复合维生素咀嚼片 补充维生素钙铁锌 综合免疫片 45片 （2-12岁适用）": 'http://item.jd.hk/5246426.html'
+NORUN:
   jd.com:
     - 'Apple MacBook Air 13.3英寸笔记本电脑': 'https://item.jd.com/4335139.html'
     - '农夫山泉 17.5°橙 3kg装 铂金果 春节年货水果礼盒': 'http://item.jd.com/4090242.html'
     - 'Apple iPhone X (A1865) 64GB 银色 移动联通电信4G手机': 'https://item.jd.com/5089235.html'
     - '罗技K380无线蓝牙键盘 手机surface键盘ipad平板Mac电脑苹果无线蓝牙 深灰色': 'https://item.jd.com/12671172957.html'
-  tmall.com:
-    - '加多宝 凉茶 茶饮料 250ml*6/组 怕上火 喝加多宝 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.102444abAIbQHg&id=43155662215&rewcatid=50514008'
-  tmall.hk:
-    - 'Gifrer法国生理海盐水滴鼻剂 0.9%等渗婴儿童宝宝通鼻塞液洗鼻腔': https://detail.tmall.hk/hk/item.htm?spm=a1z10.5-b-s.w4011-15142465107.97.wSZ5OW&id=538210886460&rn=448e53cf63b6c8377fcccf5c2b1dc246&abbucket=14    
-  liangxinyao.com:
-    - '云南白药喷雾剂气雾剂85g+60g跌打扭伤镇痛消肿喷剂药品': 'https://detail.liangxinyao.com/item.htm?spm=a222y.8236280.9350834398.11.15deb0c3FgUIim&acm=lb-zebra-199393-2277068.1003.4.1997684&id=538427354750&scm=1003.4.lb-zebra-199393-2277068.ITEM_538427354750_1997684&skuId=3216394342597'
-NORUN:
   tmall.com:
     - '加多宝 凉茶 茶饮料 250ml*6/组 怕上火 喝加多宝 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.102444abAIbQHg&id=43155662215&rewcatid=50514008'
     - '新西兰进口牛奶Anchor安佳全脂纯牛奶250ml*24盒/1箱 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.60f0f0b189aarY&id=44121706589&rewcatid=51440019'

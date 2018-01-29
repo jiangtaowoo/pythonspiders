@@ -20,6 +20,10 @@ class JDCrawler(BaseCrawler):
             prodid = prodid[0]
         else:
             return None, None
+        #jd.hk only need prodid
+        if 'jd.hk' in url:
+            return None, prodid
+        #jd.com yiyaojd.com
         verinfo = ''
         #get verinfo from html page
         run_obj = RunInfo(sitename, 'anything', url)
@@ -32,8 +36,8 @@ class JDCrawler(BaseCrawler):
             return verinfo, prodid
         return None, None            
 
-    def _get_page_number(self, sess, verinfo, prodid):
-        run_obj = RunInfo('jd.com', 'jd.com', 'http://item.jd.com/%s.html' % (str(prodid)), verinfo=verinfo, prodid=prodid, page=1)
+    def _get_page_number(self, sess, produrl, verinfo, prodid):
+        run_obj = RunInfo('jd.com', 'jd.com', produrl, verinfo=verinfo, prodid=prodid, page=1)
         try_cnt = 0
         while True and try_cnt<5:
             rsp = sess.get(url=run_obj.url, headers=run_obj.headers)
@@ -45,9 +49,13 @@ class JDCrawler(BaseCrawler):
                 continue
             #step2. parse data
             try:
-                startidx = len('fetchJSON_comment98vv') + len(str(verinfo)) + 1
-                myjson = page_data[startidx:-2]
-                page_dict = json.loads(myjson)
+                #jd.hk
+                if verinfo is None:
+                    page_dict = json.loads(page_data)
+                else:
+                    startidx = len('fetchJSON_comment98vv') + len(str(verinfo)) + 1
+                    myjson = page_data[startidx:-2]
+                    page_dict = json.loads(myjson)
             except Exception, e:
                 print '***JD*** Parse page ERROR:', run_obj.vardict['page'], e
                 try_cnt += 1
@@ -83,9 +91,12 @@ class JDCrawler(BaseCrawler):
             return None
         #step2. parse data
         try:
-            startidx = len('fetchJSON_comment98vv') + len(str(run_obj.vardict['verinfo'])) + 1
-            myjson = page_data[startidx:-2]
-            page_dict = json.loads(myjson)
+            if run_obj.vardict['verinfo'] is None:
+                page_dict = json.loads(page_data)
+            else:
+                startidx = len('fetchJSON_comment98vv') + len(str(run_obj.vardict['verinfo'])) + 1
+                myjson = page_data[startidx:-2]
+                page_dict = json.loads(myjson)
         except Exception, e:
             print '***JD*** Parse page ERROR:', run_obj.vardict['page'], e
             return None
@@ -126,9 +137,9 @@ class JDCrawler(BaseCrawler):
     def crawl_product_comment(self, sitename, prodname, produrl):
         verinfo, prodid = self._parse_verinfo_prodid_from_url(self.sess, sitename, produrl)
         crawler_q = deque([])
-        if verinfo and prodid:
+        if ('jd.hk' in produrl and prodid) or (verinfo and prodid):
             #get page number
-            pagecnt = self._get_page_number(self.sess, verinfo, prodid)
+            pagecnt = self._get_page_number(self.sess, produrl, verinfo, prodid)
             for pageidx in xrange(1, pagecnt):
                 run_obj = RunInfo(sitename, prodname, produrl, verinfo=verinfo, prodid=prodid, page=pageidx)
                 crawler_q.append(run_obj)
@@ -137,7 +148,7 @@ class JDCrawler(BaseCrawler):
                 run_obj = crawler_q.popleft()
                 print '>>>JD>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
                 dataset = self._get_one_page_comment(self.sess, run_obj)
-                if not dataset:
+                if dataset is None:
                     if run_obj.try_cnt<5:
                         run_obj.try_cnt += 1
                         if run_obj.sleepinterval==0:
