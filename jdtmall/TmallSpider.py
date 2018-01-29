@@ -1,93 +1,19 @@
 # _*_ coding:utf-8 _*_
 import random
 from collections import deque
-import requests
 import json
 import time
-import random
-import os
 import re
 #from requests.models import Response as ReqResponse
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
-import yaml
-from productmodel import ModelBase
-from baseadaptor import AdaptorSqlite
+from spiderinfo import RunInfo
+from BaseSpider import html_element_exists, BaseCrawler
 
 
-class html_element_exists(object):
-  def __init__(self, bywhat, id_or_name_or_xpath):
-    self.bywhat = bywhat
-    self.id_name_xpath = id_or_name_or_xpath
-
-  def __call__(self, driver):
-    try:
-        if self.bywhat == 'id':
-            element = driver.find_element_by_id(self.id_name_xpath)   # Finding the referenced element
-        elif self.bywhat == 'name':
-            element = driver.find_element_by_name(self.id_name_xpath)   # Finding the referenced element
-        elif self.bywhat == 'xpath':
-            element = driver.find_element_by_xpath(self.id_name_xpath)   # Finding the referenced element
-        else:
-            return False
-    except NoSuchElementException:
-        return False
-    return element
-
-
-class RunInfo(object):
-    cfg_path = os.path.sep.join([os.path.dirname(os.path.abspath(__file__)),'config'])
-    user_agent_list = yaml.load( open(os.path.sep.join([cfg_path, 'useragent.yaml'])) )
-    interval_info = yaml.load( open(os.path.sep.join([cfg_path, 'sleepinterval.yaml'])) )
-
-    def __init__(self, sitename='', prodname='', produrl='', itemid=0, sellerid=0, pageidx=0):
-        self.headers = {'User-Agent': random.choice(self.user_agent_list)}
-        self.url = ''
-        self.sleepinterval = int(self.interval_info['tmall.com']['sleep'])  if 'tmall.com' in self.interval_info else 0
-        self.try_cnt = 0
-        self.base_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&sellerId=%s&currentPage=%d'
-        self.sitename = sitename
-        self.prodname = prodname
-        self.produrl = produrl
-        self.page = pageidx
-        self.itemid = itemid
-        self.sellerid = sellerid
-        self._gen_url(itemid, sellerid, pageidx)
-
-    def _gen_url(self, itemid, sellerid, pageidx):
-        self.url = self.base_url % (str(itemid), str(sellerid), pageidx)
-
-
-class TMallCrawler(object):
-    def __init__(self):
-        self.sess = requests.session()
-        app_base_dir = os.path.dirname(os.path.abspath(__file__))
-        basepath = os.path.sep.join([app_base_dir,'config'])
-        self.businessmodel = ModelBase()
-        self.sqliteadaptor = AdaptorSqlite(spidername='tmall', dbname='comments.db')
-        self.businessmodel.load_model_config(basepath + os.path.sep + 'models.yaml')
-        self.sqliteadaptor.load_db_config(basepath + os.path.sep + 'dbs.yaml')
-        self.businessmodel.regist_persist_adaptor(self.sqliteadaptor)
-        self.accounts = yaml.load(open(basepath + os.path.sep + 'tenants.yaml'))
-        if 'ACCOUNT' in self.accounts:
-            self.accounts = self.accounts['ACCOUNT']
-        else:
-            self.accounts = None
-
-    def _stringify_data(self, data):
-        if isinstance(data, str) or isinstance(data, unicode):
-            return data
-        return str(data)
-
-    def _save_browser_cookie(self, sess, browser):
-        all_cookies = browser.get_cookies()
-        cookies_dict = dict()
-        for s_cookie in all_cookies:
-            cookies_dict[s_cookie["name"]] = s_cookie["value"]
-        sess.cookies = requests.utils.cookiejar_from_dict(cookies_dict)
-
+class TMallCrawler(BaseCrawler):
     def _perform_slipper(self, browser):
         try:
             slipper = WebDriverWait(browser, 10).until(html_element_exists('xpath', '//div[@id="nc_1__scale_text"]//span[@class="nc-lang-cnt"]'))
@@ -141,7 +67,7 @@ class TMallCrawler(object):
                 sellerid = sellerid[0][9:]
             else:
                 #step3. get url from html page
-                run_obj = RunInfo()
+                run_obj = RunInfo(sitename, 'anything', url)
                 rsp = sess.get(url=url, headers=run_obj.headers)
                 if rsp.status_code==200:
                     useridinfo = re.findall(r'userid=\d+',rsp.text)
@@ -152,14 +78,14 @@ class TMallCrawler(object):
         return None, None            
 
     def _get_page_number(self, sess, itemid, sellerid): #itemId 是商品的id, sellerId是卖家的id
-        run_obj = RunInfo('nothing', 'nothing', 'nothing', itemid, sellerid, 1)
+        run_obj = RunInfo('tmall.com', 'tmall.com', 'tmall.com', itemid=itemid, sellerid=sellerid, page=1)
         try_cnt = 0
         while True and try_cnt<5:
             rsp = sess.get(url=run_obj.url, headers=run_obj.headers)
             try:
                 page_data = rsp.text
             except Exception, e:
-                print '*** Get page ERROR:', run_obj.page, e
+                print '***TMALL*** Get page ERROR:', run_obj.vardict['page'], e
                 try_cnt += 1
                 continue
             #step2. parse data
@@ -167,7 +93,7 @@ class TMallCrawler(object):
                 myjson = "{" + page_data + "}"
                 page_dict = json.loads(myjson)
             except Exception, e:
-                print '*** Parse page ERROR:', run_obj.page, e
+                print '***TMALL*** Parse page ERROR:', run_obj.vardict['page'], e
                 page_dict = json.loads(page_data)
                 if 'url' in page_dict:
                     login_url = page_dict['url']
@@ -175,8 +101,8 @@ class TMallCrawler(object):
                 try_cnt += 1
                 continue
             try:
-                pagenum = int(page_dict['rateDetail']['paginator']['lastPage'])+1
-                return pagenum
+                pagecnt = int(page_dict['rateDetail']['paginator']['lastPage'])+1
+                return pagecnt
             except:
                 try_cnt += 1
         return 0
@@ -187,14 +113,14 @@ class TMallCrawler(object):
         try:
             page_data = rsp.text
         except Exception, e:
-            print '*** Get page ERROR:', run_obj.page, e
+            print '***TMALL*** Get page ERROR:', run_obj.vardict['page'], e
             return None
         #step2. parse data
         try:
             myjson = "{" + page_data + "}"
             page_dict = json.loads(myjson)
         except Exception, e:
-            print '*** Parse page ERROR:', run_obj.page, e
+            print '***TMALL*** Parse page ERROR:', run_obj.vardict['page'], e
             page_dict = json.loads(page_data)
             if 'url' in page_dict:
                 login_url = page_dict['url']
@@ -212,27 +138,27 @@ class TMallCrawler(object):
             datarow['sitename'] = run_obj.sitename
             datarow['prodname'] = run_obj.prodname
             datarow['produrl'] = run_obj.produrl
-            datarow['itemid'] = run_obj.itemid
-            datarow['sellerid'] = run_obj.sellerid
+            datarow['itemid'] = run_obj.vardict['itemid']
+            datarow['sellerid'] = run_obj.vardict['sellerid']
             for idx, k in enumerate(keys):
                 dataitem = comment_row[k] if k in comment_row else ''
                 datarow[innerkeys[idx]] = self._stringify_data(dataitem)
             dataset.append(datarow)
         return dataset
 
-    def crawl_tmall_comment(self, sitename, prodname, produrl):
+    def crawl_product_comment(self, sitename, prodname, produrl):
         itemid, sellerid = self._parse_item_seller_from_url(self.sess, sitename, produrl)
         crawler_q = deque([])
         if itemid and sellerid:
             #get page number
-            pagenum = self._get_page_number(self.sess, itemid, sellerid)
-            for page_num in xrange(1, pagenum):
-                run_obj = RunInfo(sitename, prodname, produrl, itemid, sellerid, page_num)
+            pagecnt = self._get_page_number(self.sess, itemid, sellerid)
+            for pageidx in xrange(1, pagecnt):
+                run_obj = RunInfo(sitename, prodname, produrl, itemid=itemid, sellerid=sellerid, page=pageidx)
                 crawler_q.append(run_obj)
             #getting data
             while crawler_q:
                 run_obj = crawler_q.popleft()
-                print '>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.page)
+                print '>>>TMALL>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
                 dataset = self._get_one_page_comment(self.sess, run_obj)
                 if not dataset:
                     if run_obj.try_cnt<5:

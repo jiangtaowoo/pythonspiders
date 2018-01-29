@@ -4,15 +4,18 @@ import datetime
 from sys import argv
 import yaml
 from TmallSpider import TMallCrawler
+from JDSpider import JDCrawler
 import sqlite2xlsx
 
 def main():
     tmallCrawlerObj = TMallCrawler()
+    jdCrawlerObj = JDCrawler()
+    obj_dict = {'tmall.com': tmallCrawlerObj, 'tmall.hk': tmallCrawlerObj, 'liangxinyao.com': tmallCrawlerObj, 'jd.com': jdCrawlerObj}
     tenants = load_tenant_info()
     for sitename, siteinfo in tenants.iteritems():
         for iteminfo in siteinfo:
             for prodname, produrl in iteminfo.iteritems():
-                tmallCrawlerObj.crawl_tmall_comment(sitename, prodname, produrl)
+                obj_dict[sitename].crawl_product_comment(sitename, prodname, produrl)
 
 def load_tenant_info():
     app_base_dir = os.path.dirname(os.path.abspath(__file__))

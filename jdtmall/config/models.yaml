@@ -18,3 +18,33 @@ TMallModel:
     extcol3: 0
     extcol4: 0
     extcol5: 0
+JDModel:
+  PK: ['internal_id']
+  cols:
+    internal_id: ['sitename', 'prodid', 'commentid']
+    sitename: 1
+    produrl: 1
+    prodname: 1
+    prodid: 1
+    commentid: 1
+    commentver: 0
+    jdcguid: 0
+    nickname: 0
+    userLevelId: 0
+    userLevelName: 0
+    creationTime: 0
+    productColor: 0
+    productSize: 0
+    score: 0
+    content: 0
+    replyCount: 0
+    isMobile: 0
+    userClientShow: 0
+    recommend: 0
+    userExpValue: 0
+    plusAvailable: 0
+    extcol1: 0
+    extcol2: 0
+    extcol3: 0
+    extcol4: 0
+    extcol5: 0

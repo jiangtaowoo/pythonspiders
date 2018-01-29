@@ -1,2 +1,4 @@
 tmall.com:
   sleep: 1
+jd.com:
+  sleep: 0

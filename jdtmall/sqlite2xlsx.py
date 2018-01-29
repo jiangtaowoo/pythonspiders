@@ -28,33 +28,24 @@ def add_worksheet_headers(dbrow, wb, shname, col_name_list, start_idx):
 def adjust_column_width(wb):
     for shname in wb.sheetnames:
         ws = wb[shname]
-        ws.column_dimensions['A'].width = 14
-        ws.column_dimensions['B'].width = 12
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 10
-        ws.column_dimensions['G'].width = 16
-        ws.column_dimensions['H'].width = 50
-        ws.column_dimensions['I'].width = 16
-        continue
-
-        for col in ws.columns:
-            max_length = 0
-            column = col[0].column  # Get the column name
-            for cell in col:
-                if cell.row>1:
-                    if cell.value:
-                        if 'http' not in cell.value:
-                            if isinstance(cell.value, unicode):
-                                if len(cell.value)*1.2 > max_length:
-                                    max_length = len(cell.value)*1.2
-                            else:
-                                if len(str(cell.value)) > max_length:
-                                    max_length = len(cell.value)
-                        else:
-                            max_length = 10
-            adjusted_width = (max_length + 2) * 1.2
-            adjusted_width = adjusted_width if adjusted_width<60 else 60
-            ws.column_dimensions[column].width = adjusted_width
+        if 'jd.com' in shname:
+            ws.column_dimensions['A'].width = 10
+            ws.column_dimensions['B'].width = 20
+            ws.column_dimensions['C'].width = 10
+            ws.column_dimensions['D'].width = 10
+            ws.column_dimensions['G'].width = 16
+            ws.column_dimensions['H'].width = 10
+            ws.column_dimensions['I'].width = 10
+            ws.column_dimensions['K'].width = 50
+            ws.column_dimensions['N'].width = 20
+        else:
+            ws.column_dimensions['A'].width = 14
+            ws.column_dimensions['B'].width = 12
+            ws.column_dimensions['C'].width = 20
+            ws.column_dimensions['D'].width = 10
+            ws.column_dimensions['G'].width = 16
+            ws.column_dimensions['H'].width = 50
+            ws.column_dimensions['I'].width = 16
 
 def output_product_info(sqliteada, wb, xlsmodelcfgs, id_row_mapping, colcnt_mapping, tbname, cond_dict=None):
     # step1. get product details and output
@@ -146,6 +137,7 @@ def sqlite_to_xlsx(xls_file_name):
     sqliteada.load_db_config(os.path.sep.join([current_dir, 'config', 'dbs.yaml']))
     xlsmodelcfgs = yaml.load(open(os.path.sep.join([current_dir, 'config', 'xlsmodel.yaml'])))
     output_product_info(sqliteada, wb, xlsmodelcfgs, id_row_mapping, colcnt_mapping, 'tmall_comment')
+    output_product_info(sqliteada, wb, xlsmodelcfgs, id_row_mapping, colcnt_mapping, 'jd_comment')
     #output_ext_info(sqliteada2, wb, xlsmodelcfgs, id_row_mapping, colcnt_mapping, 'prod_addinfo')
     adjust_column_width(wb)
     wb.save(xls_file_name)

@@ -1,2 +1,4 @@
 TMallModel:
   tablename: tmall_comment
+JDModel:
+  tablename: jd_comment
