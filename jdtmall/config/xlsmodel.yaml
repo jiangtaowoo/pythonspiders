@@ -37,6 +37,19 @@ liangxinyao.com:
     - [ratedate, 评论日期]
     - [content, 评论内容]
     - [sku, SKU]
+chaoshi.tmall.com:
+  tmall_comment:
+    - [sitename, 站点]
+    - [internal_id, uuid]
+    - [itemid, 商品Id]
+    - [sellerid, 卖家Id]
+    - [prodname, 商品名称]
+    - [produrl, 商品链接]
+    - [username, 昵称]
+    - [golduser, 超级会员]
+    - [ratedate, 评论日期]
+    - [content, 评论内容]
+    - [sku, SKU]
 jd.com:
   jd_comment:
     - [sitename, 站点]
