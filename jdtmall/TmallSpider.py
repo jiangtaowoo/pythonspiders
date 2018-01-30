@@ -25,12 +25,15 @@ class TMallCrawler(BaseCrawler):
             pass
 
     def _perform_login(self, browser, account_info):
-        elem = WebDriverWait(browser, 10).until(html_element_exists('xpath', '//input[@id="TPL_username_1"]'))
-        elem.clear()
-        elem.send_keys(account_info[0])
-        elem = WebDriverWait(browser, 10).until(html_element_exists('id', 'TPL_password_1'))
-        elem.clear()
-        elem.send_keys(account_info[1])
+        try:
+            elem = WebDriverWait(browser, 8).until(html_element_exists('xpath', '//input[@id="TPL_username_1"]'))
+            elem.clear()
+            elem.send_keys(account_info[0])
+            elem = WebDriverWait(browser, 2).until(html_element_exists('id', 'TPL_password_1'))
+            elem.clear()
+            elem.send_keys(account_info[1])
+        except:
+            pass
 
     def _login_tmall(self, sess, login_url):
         browser = webdriver.Firefox()
@@ -54,12 +57,19 @@ class TMallCrawler(BaseCrawler):
         else:
             return None, None
         sellerid = ''
+        sellerid_by_site_dict = {'chaoshi.tmall.com': '725677994', 'liangxinyao.com': '2928278102'}
         sellerid_dict = {'chaoshi.detail.tmall.com': '725677994', 'detail.liangxinyao.com': '2928278102'}
-        #step1. get sellerid from pre-defined
-        for k, v in sellerid_dict.iteritems():
-            if k in url:
+        #step1.1 get sellerid from pre-defined(by sitename)
+        for k, v in sellerid_by_site_dict.iteritems():
+            if sitename==k:
                 sellerid = v
                 break
+        if not sellerid:
+            #step1.2 get sellerid from pre-defined(by produrl)
+            for k, v in sellerid_dict.iteritems():
+                if k in url:
+                    sellerid = v
+                    break
         #step2. get sellerid from url
         if not sellerid:
             sellerid = re.findall(r'&user_id=\d+',url)

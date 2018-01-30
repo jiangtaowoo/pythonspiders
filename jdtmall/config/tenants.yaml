@@ -9,9 +9,10 @@ NORUN:
     - '农夫山泉 17.5°橙 3kg装 铂金果 春节年货水果礼盒': 'http://item.jd.com/4090242.html'
     - 'Apple iPhone X (A1865) 64GB 银色 移动联通电信4G手机': 'https://item.jd.com/5089235.html'
     - '罗技K380无线蓝牙键盘 手机surface键盘ipad平板Mac电脑苹果无线蓝牙 深灰色': 'https://item.jd.com/12671172957.html'
-  tmall.com:
+  chaoshi.tmall.com:
     - '加多宝 凉茶 茶饮料 250ml*6/组 怕上火 喝加多宝 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.102444abAIbQHg&id=43155662215&rewcatid=50514008'
     - '新西兰进口牛奶Anchor安佳全脂纯牛奶250ml*24盒/1箱 ': 'https://chaoshi.detail.tmall.com/item.htm?spm=a3204.7933263.0.0.60f0f0b189aarY&id=44121706589&rewcatid=51440019'
+  tmall.com:
     - 'Apple/苹果 iPhone X': 'https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.8.1f6d3ac83X6Wxg&id=560257961625&areaId=320100&user_id=1917047079&cat_id=2&is_b=1&rn=a851bb9cf87bdcb342e958326cfa1955&sku_properties=10004:709990523'
     - 'LEGO乐高 经典创意大号积木盒10698小颗粒拼插塑料积木儿童玩具': 'https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.16.63f7e369WgwTFQ&id=533020144717&skuId=3553078192164&areaId=320100&user_id=859385837&cat_id=2&is_b=1&rn=f299f249d689d440a58315a45ccf77b9'
   tmall.hk:
