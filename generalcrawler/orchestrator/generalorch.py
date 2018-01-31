@@ -8,7 +8,8 @@ from requests.exceptions import ConnectionError
 #from requests.models import Response as ReqResponse
 from datacrawler.gdatacrawler import GeneralCrawler
 from dto.dtomanager import DTOManager
-from persistadaptor.baseadaptor import AdaptorSqlite
+#from persistadaptor.baseadaptor import AdaptorSqlite
+from persistadaptor.ormadaptor import AdaptorORM as AdaptorSqlite
 from models.productmodel import ModelBase
 import gevent
 #from gevent.lock import BoundedSemaphore
@@ -62,7 +63,7 @@ class BaseOrchestrator(object):
         self.sqliteadaptor = AdaptorSqlite(spidername=self.spidername)
         self.crawler.load_http_config(basepath + os.path.sep + 'http.yaml')
         self.businessmodel.load_model_config(basepath + os.path.sep + 'models.yaml')
-        self.sqliteadaptor.load_db_config(basepath + os.path.sep + 'dbs.yaml')
+        self.sqliteadaptor.load_db_config(basepath + os.path.sep + 'models.yaml')
         dtomgr = DTOManager(self.spidername)
         dtomgr.load_dto_config((basepath + os.path.sep + 'dtomap.yaml'))
         self.crawler.attach_dto(dtomgr=dtomgr)
