@@ -10,7 +10,7 @@ import sqlite2xlsx
 def main():
     tmallCrawlerObj = TMallCrawler()
     jdCrawlerObj = JDCrawler()
-    obj_dict = {'tmall.com': tmallCrawlerObj, 'tmall.hk': tmallCrawlerObj, 'liangxinyao.com': tmallCrawlerObj, 'jd.com': jdCrawlerObj, 'yiyaojd.com': jdCrawlerObj, 'jd.hk': jdCrawlerObj}
+    obj_dict = {'tmall.com': tmallCrawlerObj, 'chaoshi.tmall.com': tmallCrawlerObj, 'tmall.hk': tmallCrawlerObj, 'liangxinyao.com': tmallCrawlerObj, 'jd.com': jdCrawlerObj, 'yiyaojd.com': jdCrawlerObj, 'jd.hk': jdCrawlerObj}
     tenants = load_tenant_info()
     for sitename, siteinfo in tenants.iteritems():
         for iteminfo in siteinfo:

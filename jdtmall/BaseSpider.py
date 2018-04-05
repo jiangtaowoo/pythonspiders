@@ -1,6 +1,7 @@
 # _*_ coding:utf-8 _*_
 import requests
 import os
+from collections import deque
 import yaml
 from selenium.common.exceptions import NoSuchElementException
 from productmodel import ModelBase
@@ -29,6 +30,8 @@ class html_element_exists(object):
 
 class BaseCrawler(object):
     def __init__(self):
+        self.crawler_q = deque([])
+        self.crawler_except_q = deque([])
         self.sess = requests.session()
         app_base_dir = os.path.dirname(os.path.abspath(__file__))
         basepath = os.path.sep.join([app_base_dir,'config'])

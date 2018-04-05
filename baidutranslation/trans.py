@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import os
 from sys import argv
 import time
@@ -45,7 +45,7 @@ class html_element_exists(object):
         except NoSuchElementException:
             return False
         return element
-    
+
 
 class BDTranslation(object):
     def __init__(self):

@@ -11,6 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from spiderinfo import RunInfo
 from BaseSpider import html_element_exists, BaseCrawler
+import gevent
+from gevent import monkey
+monkey.patch_all()
 
 
 class JDCrawler(BaseCrawler):
@@ -134,34 +137,48 @@ class JDCrawler(BaseCrawler):
             dataset.append(datarow)
         return dataset
 
+    def crawl_worker(self, workername, workerid):
+        while self.crawler_q:
+            if self.crawler_except_q:
+                gevent.sleep(5)
+                continue
+            run_obj = self.crawler_q.popleft()
+            print '>>>JD>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
+            dataset = self._get_one_page_comment(self.sess, run_obj)
+            if dataset is None:
+                if run_obj.try_cnt<5:
+                    run_obj.try_cnt += 1
+                    if run_obj.sleepinterval==0:
+                        run_obj.sleepinterval = 2
+                    elif run_obj.sleepinterval<5:
+                        run_obj.sleepinterval += 1
+                    self.crawler_q.append(run_obj)
+                else:
+                    print '***JD JOB FAILED %s, page %d !' % (run_obj.prodname, run_obj.vardict['page'])
+            else:
+                for datarow in dataset:
+                    self.businessmodel.notify_model_info_received(av_data_module=['JDModel'], **datarow)
+            #slow down
+            if run_obj.sleepinterval>0:
+                gevent.sleep(run_obj.sleepinterval)
+
     def crawl_product_comment(self, sitename, prodname, produrl):
         verinfo, prodid = self._parse_verinfo_prodid_from_url(self.sess, sitename, produrl)
-        crawler_q = deque([])
+        self.crawler_q = deque([])
         if ('jd.hk' in produrl and prodid) or (verinfo and prodid):
             #get page number
             pagecnt = self._get_page_number(self.sess, produrl, verinfo, prodid)
             for pageidx in xrange(1, pagecnt):
                 run_obj = RunInfo(sitename, prodname, produrl, verinfo=verinfo, prodid=prodid, page=pageidx)
-                crawler_q.append(run_obj)
+                self.crawler_q.append(run_obj)
             #getting data
-            while crawler_q:
-                run_obj = crawler_q.popleft()
-                print '>>>JD>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
-                dataset = self._get_one_page_comment(self.sess, run_obj)
-                if dataset is None:
-                    if run_obj.try_cnt<5:
-                        run_obj.try_cnt += 1
-                        if run_obj.sleepinterval==0:
-                            run_obj.sleepinterval = 2
-                        elif run_obj.sleepinterval<5:
-                            run_obj.sleepinterval += 1
-                        crawler_q.append(run_obj)
-                else:
-                    for datarow in dataset:
-                        self.businessmodel.notify_model_info_received(av_data_module=['JDModel'], **datarow)
-                #slow down
-                if run_obj.sleepinterval>0:
-                    time.sleep(run_obj.sleepinterval)
+            #getting data
+            threads = []
+            for i in xrange(0,100):
+                threads.append( gevent.spawn(self.crawl_worker, 'jd_crawl_worker', i+1) )
+            #3.2 create one consumer greenlet
+            #step4. wait for finishing
+            gevent.joinall( threads )
             print 'Finish getting data!'
         else:
             print 'Url unrecognized: %s' % (produrl)

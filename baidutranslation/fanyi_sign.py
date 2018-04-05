@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import re
 
 #def convert_to_list(srcdata):
@@ -11,7 +11,7 @@ def shift_data(input_data,ind_str):
         data_shifted = input_data >> shift_bits if '+'==ind_str[idx+1] else input_data << shift_bits
         input_data = input_data+data_shifted&4294967295 if '+'==ind_str[idx] else input_data^data_shifted
     return input_data
-    
+
 def calc_sign(input_str, window_gtk="320305.131321201"):
     match_result = re.findall(ur"[\uD800-\uDBFF][\uDC00-\uDFFF]",input_str)
     if match_result is None or len(match_result)==0:

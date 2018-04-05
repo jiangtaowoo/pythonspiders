@@ -11,6 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from spiderinfo import RunInfo
 from BaseSpider import html_element_exists, BaseCrawler
+import gevent
+from gevent import monkey
+monkey.patch_all()
 
 
 class TMallCrawler(BaseCrawler):
@@ -78,11 +81,15 @@ class TMallCrawler(BaseCrawler):
             else:
                 #step3. get url from html page
                 run_obj = RunInfo(sitename, 'anything', url)
-                rsp = sess.get(url=url, headers=run_obj.headers)
-                if rsp.status_code==200:
-                    useridinfo = re.findall(r'userid=\d+',rsp.text)
-                    if len(useridinfo):
-                        sellerid = useridinfo[0][7:]
+                try:
+                    rsp = sess.get(url=url, headers=run_obj.headers)
+                    if rsp.status_code==200:
+                        useridinfo = re.findall(r'userid=\d+',rsp.text)
+                        if len(useridinfo):
+                            sellerid = useridinfo[0][7:]
+                except requests.exceptions.ConnectionError:
+                    print 'Connection Error, please check network connection'
+                    return None, None
         if itemid and sellerid:
             return itemid, sellerid
         return None, None            
@@ -134,7 +141,10 @@ class TMallCrawler(BaseCrawler):
             page_dict = json.loads(page_data)
             if 'url' in page_dict:
                 login_url = page_dict['url']
-                self._login_tmall(sess, login_url)
+                if not self.crawler_except_q:
+                    self.crawler_except_q.append(login_url)
+                    self._login_tmall(sess, login_url)
+                    self.crawler_except_q.popleft()
             return None
         if len(page_dict) == 0:
             return None
@@ -156,34 +166,48 @@ class TMallCrawler(BaseCrawler):
             dataset.append(datarow)
         return dataset
 
+    def crawl_worker(self, workername, workerid):
+        while self.crawler_q:
+            if self.crawler_except_q:
+                gevent.sleep(5)
+                continue
+            run_obj = self.crawler_q.popleft()
+            print '>>>TMALL>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
+            dataset = self._get_one_page_comment(self.sess, run_obj)
+            if dataset is None:
+                if run_obj.try_cnt<5:
+                    run_obj.try_cnt += 1
+                    if run_obj.sleepinterval==0:
+                        run_obj.sleepinterval = 2
+                    elif run_obj.sleepinterval<5:
+                        run_obj.sleepinterval += 1
+                    self.crawler_q.append(run_obj)
+                else:
+                    print '***TMALL JOB FAILED %s, page %d !' % (run_obj.prodname, run_obj.vardict['page'])
+            else:
+                for datarow in dataset:
+                    self.businessmodel.notify_model_info_received(av_data_module=['TMallModel'], **datarow)
+            #slow down
+            if run_obj.sleepinterval>0:
+                gevent.sleep(run_obj.sleepinterval)
+        #print workername, ' %d is quitting' % (workerid)
+
     def crawl_product_comment(self, sitename, prodname, produrl):
         itemid, sellerid = self._parse_item_seller_from_url(self.sess, sitename, produrl)
-        crawler_q = deque([])
+        self.crawler_q = deque([])
         if itemid and sellerid:
             #get page number
             pagecnt = self._get_page_number(self.sess, itemid, sellerid)
             for pageidx in xrange(1, pagecnt):
                 run_obj = RunInfo(sitename, prodname, produrl, itemid=itemid, sellerid=sellerid, page=pageidx)
-                crawler_q.append(run_obj)
+                self.crawler_q.append(run_obj)
             #getting data
-            while crawler_q:
-                run_obj = crawler_q.popleft()
-                print '>>>TMALL>>> getting data %s, - page %d ...' % (run_obj.prodname, run_obj.vardict['page'])
-                dataset = self._get_one_page_comment(self.sess, run_obj)
-                if dataset is None:
-                    if run_obj.try_cnt<5:
-                        run_obj.try_cnt += 1
-                        if run_obj.sleepinterval==0:
-                            run_obj.sleepinterval = 2
-                        elif run_obj.sleepinterval<5:
-                            run_obj.sleepinterval += 1
-                        crawler_q.append(run_obj)
-                else:
-                    for datarow in dataset:
-                        self.businessmodel.notify_model_info_received(av_data_module=['TMallModel'], **datarow)
-                #slow down
-                if run_obj.sleepinterval>0:
-                    time.sleep(run_obj.sleepinterval)
+            threads = []
+            for i in xrange(0,100):
+                threads.append( gevent.spawn(self.crawl_worker, 'tmall_crawl_worker', i+1) )
+            #3.2 create one consumer greenlet
+            #step4. wait for finishing
+            gevent.joinall( threads )
             print 'Finish getting data!'
         else:
             print 'Url unrecognized: %s' % (produrl)

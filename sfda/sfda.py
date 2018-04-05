@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import pickle
 import base64
 import requests
 from sys import argv
@@ -58,6 +59,27 @@ def save_data(browser, themonth, id):
     with open(get_prod_filename(themonth,id),'w') as outf:
         outf.write(browser.page_source.encode('utf-8'))
 
+def load_download_complete_info():
+    filepath = ''.join(['.', os.sep, 'dataout', os.sep, 'sfda_complete.log'])
+    completedict = dict()
+    if os.path.exists(filepath):
+        completedict = pickle.load(open(filepath,'rb'))
+    return completedict
+
+def update_download_complete_info(themonth, pageidx):
+    filepath = ''.join(['.', os.sep, 'dataout', os.sep, 'sfda_complete.log'])
+    completedict = dict()
+    if os.path.exists(filepath):
+        completedict = pickle.load(open(filepath,'rb'))
+    if str(themonth) in completedict:
+        pagelist = completedict[str(themonth)]
+        if int(pageidx) not in pagelist:
+            pagelist.append(int(pageidx))
+            pagelist.sort()
+    else:
+        completedict[str(themonth)] = [int(pageidx)]
+    pickle.dump(completedict, open(filepath,'wb'))
+
 def get_product_xpath():
     i = 1
     while i<30:
@@ -102,7 +124,7 @@ def get_data_page(browser, themonth, pageidx):
     btn_return_list = '//img[contains(@src,"data_fanhui")]'
     next_page_xpath = '//img[contains(@src,"dataanniu_07")]'
     page_info_xpath = '//img[contains(@src,"dataanniu_03")]/parent::td/preceding-sibling::td[2]'
-    elem_page_info = WebDriverWait(browser, 20).until(xpath_element_exists(page_info_xpath))
+    elem_page_info = WebDriverWait(browser, 10).until(xpath_element_exists(page_info_xpath))
     #elem_page_info = browser.find_element_by_xpath(page_info_xpath)
     page_info = elem_page_info.text
     page_info = page_info[page_info.index(u'共')+1:]
@@ -112,10 +134,13 @@ def get_data_page(browser, themonth, pageidx):
         return None
     #load no prod details info
     no_details_prod_list = []
-    with open(get_prod_filename(themonth, 0, 'nodetails')) as infile:
-        for line in infile:
-            if '\t' in line:
-                no_details_prod_list.append( line.strip().split('\t')[0] )
+    try:
+        with open(get_prod_filename(themonth, 0, 'nodetails')) as infile:
+            for line in infile:
+                if '\t' in line:
+                    no_details_prod_list.append( line.strip().split('\t')[0] )
+    except:
+      pass
     print '- getting data for page %d of %d' % (pageidx, page_total)
     elem_page = browser.find_element_by_id('goInt')
     elem_page.clear()
@@ -125,8 +150,10 @@ def get_data_page(browser, themonth, pageidx):
     elem_gotopage.click()
     product_xpaths = get_product_xpath()
     prod_xpath = product_xpaths.next()
-    elem = WebDriverWait(browser, 20).until(xpath_element_exists(prod_xpath))
+    elem = WebDriverWait(browser, 10).until(xpath_element_exists(prod_xpath))
     product_xpaths = get_product_xpath()
+    #判断本页是否已经下载完成, 如果是, 后续不需要再访问该页
+    page_download_complete = True
     for prod_xpath in product_xpaths:
         #a. get one line of products, open to get details
         try:
@@ -139,13 +166,15 @@ def get_data_page(browser, themonth, pageidx):
                 continue
             if str(prod_id) in no_details_prod_list:
                 continue
+            #还有数据未下载, 该页未完全下载
+            page_download_complete = False
             save_prod_order_info(themonth, prod_id, pageidx)
             elem_prod.click()
         except NoSuchElementException:
             break
         #time.sleep(3)
         #b. click details
-        WebDriverWait(browser, 20).until(xpath_element_exists(btn_detail_xpath))
+        WebDriverWait(browser, 10).until(xpath_element_exists(btn_detail_xpath))
         elem_detail = browser.find_element_by_xpath(btn_detail_xpath)
         elem_detail.click()
         #time.sleep(3)
@@ -160,7 +189,7 @@ def get_data_page(browser, themonth, pageidx):
         captcha_wrong = True
         try_times = 0
         while captcha_wrong and try_times<5:
-            elem = WebDriverWait(browser, 20).until(xpath_element_exists(captcha_xpath))
+            elem = WebDriverWait(browser, 10).until(xpath_element_exists(captcha_xpath))
             #c.2 save captcha, recognize captcha
             save_captcha(captcha_file_path, browser, captcha_xpath)
             captcha = recognize_captcha(captcha_file_path)
@@ -171,7 +200,7 @@ def get_data_page(browser, themonth, pageidx):
             elem_sendcaptch = browser.find_element_by_xpath(btn_send_captcha)
             elem_sendcaptch.click()
             try:
-                WebDriverWait(browser, 20).until(xpath_element_exists('//body'))
+                WebDriverWait(browser, 10).until(xpath_element_exists('//body'))
                 save_data(browser, themonth, prod_id)
                 #prod_url = browser.current_url
                 add_log(themonth, str(pageidx), str(prod_id), prod_name, prod_url)
@@ -199,6 +228,8 @@ def get_data_page(browser, themonth, pageidx):
         elem_return = browser.find_element_by_xpath(btn_return_list)
         elem_return.click()
         #time.sleep(3)
+    if page_download_complete:
+        update_download_complete_info(themonth, pageidx)
     return True
 
 def calc_proxy_profile(proxy_info, drivertype='phantomjs'):
@@ -226,7 +257,7 @@ def main(themonth, pageidx):
     url = 'http://app1.sfda.gov.cn/datasearch/face3/base.jsp?tableId=69&tableName=TABLE69&title=%BD%F8%BF%DA%BB%AF%D7%B1%C6%B7&bcId=124053679279972677481528707165'
     input_search_xpath = '//input[contains(@type,"text") and contains(@name,"COLUMN811")]'
     btn_search_xpath = '//input[@name="COLUMN805"]/following-sibling::input'
-    search_keys = u'国妆备进字J2017' + str(themonth)
+    search_keys = u'国妆备进字J2018' + str(themonth)
     #step1. open website
     browser = webdriver.Firefox()
     proxy_info = None
@@ -234,19 +265,30 @@ def main(themonth, pageidx):
     #browser = webdriver.Chrome(chrome_options=calc_proxy_profile(proxy_info, 'chrome'))
     #browser = webdriver.PhantomJS(service_args=calc_proxy_profile(proxy_info, 'phantomjs'))
     browser.get(url)
-    #step2. query by category
-    elem = WebDriverWait(browser, 60).until(xpath_element_exists(input_search_xpath))
-    #elem = browser.find_element_by_xpath(input_search_xpath)
-    elem.send_keys(search_keys)
-    elem = browser.find_element_by_xpath(btn_search_xpath)
-    elem.click()
-    #step3. find product one by one
-    has_data = True
-    while has_data:
-        has_data = get_data_page(browser, themonth, pageidx)
-        pageidx += 1
-        #time.sleep(120)
-    browser.quit()
+    #加载已经下载完成的页面信息, 避免多次重复打开这些页面
+    completedict = load_download_complete_info()
+    month_complete_list = []
+    if str(themonth) in completedict:
+        month_complete_list = completedict[str(themonth)]
+    try:
+        #step2. query by category
+        elem = WebDriverWait(browser, 10).until(xpath_element_exists(input_search_xpath))
+        #elem = browser.find_element_by_xpath(input_search_xpath)
+        elem.send_keys(search_keys)
+        elem = browser.find_element_by_xpath(btn_search_xpath)
+        elem.click()
+        #step3. find product one by one
+        has_data = True
+        while has_data:
+            if pageidx not in month_complete_list:
+                has_data = get_data_page(browser, themonth, pageidx)
+            pageidx += 1
+            #time.sleep(120)
+        browser.quit()
+        return True
+    except:
+        browser.quit()
+        return False
     
 
 if __name__=="__main__":
@@ -255,7 +297,13 @@ if __name__=="__main__":
         main(themonth, int(pageidx))
     elif len(argv)==2:
         script, themonth = argv
-        for i in xrange(int(themonth),10):
+        month_list = xrange(int(themonth),4)
+        i = 0
+        #for i in xrange(int(themonth),4):
+        while True:
             print '>>> cata %d ---' % (i)
             save_prod_order_info(i, 0, 0, True)
-            main(i, 1)
+            if main(i, 1):
+                i = i+1
+            if i>=len(month_list):
+              break
