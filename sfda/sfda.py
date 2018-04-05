@@ -28,6 +28,28 @@ class xpath_element_exists(object):
         return False
     return element
 
+
+def calc_proxy_profile(proxy_info, drivertype='phantomjs'):
+    if drivertype=='chrome':
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--proxy-server=http://%s' % (proxy_info))
+        return chrome_options
+    elif drivertype=='firefox':
+        profile = webdriver.FirefoxProfile()
+        proxyobj = Proxy({
+        'proxyType': ProxyType.MANUAL,
+        'httpProxy': proxy_info,
+        'ftpProxy': proxy_info,
+        'sslProxy': proxy_info,
+        'noProxy': '' # set this value as desired
+        })
+        profile.set_proxy(proxyobj)
+        profile.update_preferences()
+        return profile
+    serv_args = ['--proxy=%s' % (proxy_info), '--proxy-type=http',]
+    #'--proxy-auth=username:password'
+    return serv_args
+
 def save_captcha(captcha_file_path, browser, img_xpath):
     ele_captcha = browser.find_element_by_xpath(img_xpath)
     img_captcha_base64 = browser.execute_async_script("""
@@ -232,26 +254,6 @@ def get_data_page(browser, themonth, pageidx):
         update_download_complete_info(themonth, pageidx)
     return True
 
-def calc_proxy_profile(proxy_info, drivertype='phantomjs'):
-    if drivertype=='chrome':
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--proxy-server=http://%s' % (proxy_info))
-        return chrome_options
-    elif drivertype=='firefox':
-        profile = webdriver.FirefoxProfile()
-        proxyobj = Proxy({
-        'proxyType': ProxyType.MANUAL,
-        'httpProxy': proxy_info,
-        'ftpProxy': proxy_info,
-        'sslProxy': proxy_info,
-        'noProxy': '' # set this value as desired
-        })
-        profile.set_proxy(proxyobj)
-        profile.update_preferences()
-        return profile
-    serv_args = ['--proxy=%s' % (proxy_info), '--proxy-type=http',]
-    #'--proxy-auth=username:password'
-    return serv_args
 
 def main(themonth, pageidx):
     url = 'http://app1.sfda.gov.cn/datasearch/face3/base.jsp?tableId=69&tableName=TABLE69&title=%BD%F8%BF%DA%BB%AF%D7%B1%C6%B7&bcId=124053679279972677481528707165'
