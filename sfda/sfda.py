@@ -289,7 +289,7 @@ def main(themonth, pageidx):
     except:
         browser.quit()
         return False
-    
+
 
 if __name__=="__main__":
     if len(argv)==3:
