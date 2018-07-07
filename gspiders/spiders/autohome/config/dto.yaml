@@ -1,0 +1,93 @@
+car.autohome.com.cn>brand:
+  datamodule: ['CarSeries']
+  callback:
+    modulename: autohome
+    classname: AutohomeParser
+    procedure:
+      - calc_brandid
+      - calc_seriesid
+      - calc_carcolorbg
+  field:
+    datatype: html
+    row_def: '//div[@class="list-cont-main"]'
+    col_def:
+      brandidinfo: './ancestor::div[contains(@class,"brandtab-cont")]/preceding-sibling::div[@class="uibox"]/div[@class="uibox-title"]/h2/a/@href'
+      brandname: './ancestor::div[contains(@class,"brandtab-cont")]/preceding-sibling::div[@class="uibox"]/div[@class="uibox-title"]/h2/a/text()'
+      subbrandidinfo: '(./ancestor::div[@class="list-cont"]/preceding-sibling::div[@class="brand-title"])[last()]/a/@href'
+      subbrandname: '(./ancestor::div[@class="list-cont"]/preceding-sibling::div[@class="brand-title"])[last()]/a/h3/text()'
+      seriesidinfo: './div[@class="main-title"]/@id'
+      seriesname: './div[@class="main-title"]/a/text()'
+      carlevel: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[1]/span'
+      carstruct: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[2]//a/text()'
+      carengine: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[3]//a/text()'
+      cargearbox: '(./div[@class="main-lever"]/div[@class="main-lever-left"]//li)[4]//a/text()'
+      carcolor: './div[@class="main-lever"]/div[@class="main-lever-left"]//li[@class="lever-ul-color"]/div[contains(@class,"carcolor")]//a//div[@class="tip-content"]/text()'
+      carcolorbginfo: './div[@class="main-lever"]/div[@class="main-lever-left"]//li[@class="lever-ul-color"]/div[contains(@class,"carcolor")]//a//em[@style]/@style'
+      carprice: './div[@class="main-lever"]/div[@class="main-lever-right"]/div/span[contains(@class,"lever-price")]/span/text()'
+      userrank: './div[@class="main-lever"]/div[@class="main-lever-right"]/div[@class="score-cont"]//span[@class="score-number"]/text()'
+    col_calc:
+      brandid: ['calc_brandid', ['brandidinfo']]
+      subbrandid: ['calc_brandid', ['subbrandidinfo']]
+      seriesid: ['calc_seriesid', ['seriesidinfo']]
+      carcolorbg: ['calc_carcolorbg', ['carcolorbginfo']]
+car.autohome.com.cn>series:
+  datamodule: ['CarSpecs']
+  callback:
+    modulename: autohome
+    classname: AutohomeParser
+    procedure:
+      - calc_specid
+      - calc_seriesid_byurl
+      - calc_focusrank
+  field:
+    datatype: html
+    row_def: '//div[@class="interval01"]//li[@data-value]'
+    col_def:
+      specidinfo: './div[@class="interval01-list-cars"]//p[@id]/@id'
+      specname: './div[@class="interval01-list-cars"]//p[@id]/a[@href]/text()'
+      seriesidurlinfo: './ancestor::body//div[@class="main-title"]/a[@href]/@href'
+      seriessubinfo: '(./ancestor::div[@class="interval01"])[last()]//span[@class="interval01-list-cars-text"]/text()'
+      salestatus: './div[@class="interval01-list-cars"]//p[not(@id)]//span[contains(@class,"label")]/text()'
+      drivertype: './div[@class="interval01-list-cars"]//p[not(@id)]//span[not(@class)][1]/text()'
+      geartype: './div[@class="interval01-list-cars"]//p[not(@id)]//span[not(@class)][2]/text()'
+      userfocusrankinfo: './div[@class="interval01-list-attention"]//span[@id]/@style'
+      carprice: './div[@class="interval01-list-guidance"]//a[@title]/following-sibling::text()'
+    col_calc:
+      specid: ['calc_specid', ['specidinfo']]
+      seriesid: ['calc_seriesid_byurl', ['seriesidurlinfo']]
+      userfocusrank: ['calc_focusrank', ['userfocusrankinfo']]
+car.autohome.com.cn>dealer:
+  datamodule: ['DealerInfo']
+  callback:
+    modulename: autohome
+    classname: AutohomeParser
+    procedure:
+      - calc_dealerid
+  field:
+    datatype: html
+    row_def: '//div[@class="name-title"]'
+    col_def:
+      dealeridinfo: './a/@href'
+      dealername: './a//text()'
+    col_calc:
+      dealerid: ['calc_dealerid', ['dealeridinfo']]
+car.autohome.com.cn>price:
+  datamodule: ['CarPrice']
+  callback:
+    modulename: autohome
+    classname: AutohomeParser
+    procedure:
+      - calc_today
+  field:
+    datatype: json
+    row_def: '/{body}/{item}'
+    col_def:
+      specid: '{SpecId}'
+      cityid: '/{CityId}'
+      cityname: '/{CityName}'
+      dealerid: '/{DealerId}'
+      seriesid: '/{SeriesId}'
+      saleprice_min: '/{MinPrice}'
+      saleprice: '/{Price}'
+    col_calc:
+      public_date: ['calc_today', []]

@@ -1,0 +1,66 @@
+car.autohome.com.cn>brand:
+  request:
+    url: https://car.autohome.com.cn
+    method: get
+    kwargs:
+      url: https://car.autohome.com.cn/price/brand-%BRANDID%.html
+      headers:
+        Host: car.autohome.com.cn
+        User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate, br
+        Referer: https://car.autohome.com.cn/
+  control:
+    sleep: 0
+car.autohome.com.cn>series:
+  request:
+    method: get
+    kwargs:
+      url: https://car.autohome.com.cn/price/series-%SERIESID%.html
+      headers:
+        Host: car.autohome.com.cn
+        User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate, br
+        Referer: https://car.autohome.com.cn/price/brand-%BRANDID%.html
+  control:
+    sleep: 0
+car.autohome.com.cn>price:
+  request:
+    method: get
+    kwargs:
+      url: https://carif.api.autohome.com.cn/dealer/LoadDealerPrice.ashx
+      headers:
+        Host: carif.api.autohome.com.cn
+        User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+        Accept: '*/*'
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate, br
+        Referer: https://car.autohome.com.cn/price/series-%SERIESID%.html
+      params:
+        _callback: 'LoadDealerPrice'
+        type: '1'
+        seriesid: '%SERIESID%'
+        city: '%CITYID%'
+  control:
+    sleep: 0
+car.autohome.com.cn>dealer:
+  request:
+    method: get
+    kwargs:
+      url: https://dealer.autohome.com.cn/frame/car/GetDealerByCar
+      headers:
+        Host: dealer.autohome.com.cn
+        User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate, br
+        Referer: https://car.autohome.com.cn/price/series-%SERIESID%.html
+      params:
+        SeriesId: '%SERIESID%'
+        ProvinceId: '%PROVINCEID%'
+        CityId: '%CITYID%'
+  control:
+    sleep: 0

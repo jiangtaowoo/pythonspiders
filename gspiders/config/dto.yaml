@@ -1,0 +1,22 @@
+test.com:
+  datamodule: ['ProductAddModel', 'model2']
+  callback:
+    modulename: abc
+    classname: A
+    functions:
+      - func1
+      - func2
+  field:
+    datatype: json
+    row_def: '/[?@salary>8000]|[?@salary!=面议]|[?@age>30]|[?@description@work@salary_from>=4000]'
+    col_def:
+      name: '/{name}'
+      workYear: '/{workYear}'
+      age: '/{age}'
+      salary: '/{salary}'
+      sex: '/{sex}'
+      salary_from: '/{description}/{work}/{salary_from}'
+      salary_to: '/{description}/{work}/{salary_to}'
+    col_calc:
+      colname1: ['func1', [p1, p2]]
+      colname2: ['func1', [p1, p2]]

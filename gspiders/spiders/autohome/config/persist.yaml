@@ -1,0 +1,28 @@
+CarSeries:
+  type: sqlite
+  policy: ignore
+  storage:
+    file: autohome.db
+    scheme: master
+    table: car_series
+CarSpecs:
+  type: sqlite
+  policy: ignore
+  storage:
+    file: autohome.db
+    scheme: master
+    table: car_specs
+CarPrice:
+  type: sqlite
+  policy: ignore
+  storage:
+    file: autohome.db
+    scheme: master
+    table: car_price
+DealerInfo:
+  type: sqlite
+  policy: update
+  storage:
+    file: autohome.db
+    scheme: master
+    table: dealer_info
