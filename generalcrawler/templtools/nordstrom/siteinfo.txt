@@ -1,1 +1,0 @@
-NordStrom|shop.nordstrom.com|proxy|callbacknds|NDSCallback|ProductModel

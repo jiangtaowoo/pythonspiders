@@ -1,5 +1,0 @@
-# -*- coding: utf-8 -*-
-ProductModel:
-  tablename: prod_info
-ProductAddModel:
-  tablename: prod_addinfo

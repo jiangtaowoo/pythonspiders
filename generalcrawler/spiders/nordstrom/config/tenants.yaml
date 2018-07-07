@@ -1,6 +1,0 @@
-# -*- coding: utf-8 -*-
-RUN:
-  Nordstrom: ['shop.nordstrom.com-nobrowser']
-NORUN:
-  Nordstrom: ['shop.nordstrom.com']
-  Nordstrom-ProductInfo: ['shop.nordstrom.com-add']
