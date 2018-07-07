@@ -1,7 +1,0 @@
-ProductModel:
-  type: sqlite/mysql/postgreSQL/redis/mongodb
-  policy: update|ignore
-  storage:
-    file: xxx.db
-    scheme: xxx
-    tablename: prod_info
